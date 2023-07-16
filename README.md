@@ -7,7 +7,7 @@ For Tree View to work, create a home directory (any name) where you want to hous
 - Show files and folders in a vertical tree diagram ✅
 - Get properties of a file
 - Add a new file or folder
-- Remove a file or folder
+- Remove a file or folder [note for me: don't get all properties when getting the directory content, only get the properties on request for a particular one - should have quick load times, if even it's only 40ms faster.]
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - Open a file in its respective app 
 - Option to open directory in Windows File Explorer (maybe mac later)
@@ -27,7 +27,11 @@ It'll probably be named `.treeview` or something along those lines
 ---
 
 ## Resources and references
-All the third party libraries used.
+### All assets used
+
+[SVG Images](https://www.svgrepo.com)
+
+### All the third party libraries used
 
 [WalkDir](https://docs.rs/walkdir/latest/walkdir/) (Rust)
 
