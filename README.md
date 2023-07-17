@@ -2,9 +2,9 @@
 For Tree View to work, create a home directory (any name) where you want to house your files and folders.
 
 ## Features
-- Add new `master` directories and switch between them
-- Search for a file in the current directory
-- Show files and folders in a vertical tree diagram ✅
+- ✅ Add new `master` directories and switch between them
+- 👷‍♂️ Search for a file in the current directory [need to be able to get all files that have the inputted characters]
+- ✅ Show files and folders in a vertical tree diagram
 - Get properties of a file [note for me: don't get all properties when getting the directory content, only get the properties on request for a particular one - should have quick load times, if even it's only 40ms faster.]
 - Add a new file or folder
 - Remove a file or folder - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)

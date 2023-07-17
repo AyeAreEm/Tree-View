@@ -51,13 +51,18 @@ button, select {
     outline: none;
 }
 
-button {
+button, select, input[type=submit] {
     cursor: pointer;
 }
 
-button:hover {
+button:hover, select:hover, input[type=submit]:hover {
     border-color: #396cd8;
 }
+
+button.caution:hover, input[type=submit].caution:hover {
+    border-color: #E0115F;
+}
+
 button:active {
     border-color: #396cd8;
     background-color: #0f0f0f69;

@@ -4,72 +4,143 @@
     import * as d3 from "d3";
 
     let homeDirectory;
-    let directoryDialog;
+    let addDirectoryDialog;
+    let removeDirectoryDialog;
     let received;
+    let searchValue;
 
-    let paths = ["yes.js"];
+    let storedDirectories = localStorage.getItem("storedDirectories") ? JSON.parse(localStorage.getItem("storedDirectories")) : [];
+
+    let paths = ["welcome, create a directory^"]; // main path array, everything tracks back to this
+    let pathMap = new Map(); // mappings for shorten paths to be linked to paths
+    let pathTmp; // to be able to go back to the original paths when done with searching
 
     let width = 1000;
-	let height = 550;
-
+    let height = 550;
     let recWidth = 60;
     let recHeight = 40;
 
     async function handleLoadDirectory(homeDirectory) {
         received =  await invoke("load_directory", {directory: homeDirectory});
         paths = [];
+        pathMap.clear();
+        pathTmp = [];
         
         for (let i = 0; i < received.length; i++) {
             let newString = received[i].replaceAll("\\", "/");
+
             received[i] = newString;
         }
 
         paths = received;
     }
 
-    (async () => {
-        await handleLoadDirectory("C:/Users/agaye/Desktop/testing");
-     })()
+    onMount(async () => {
+        if (!storedDirectories.length) {
+            return;
+        }
+        
+        await handleLoadDirectory(storedDirectories[0].directoryPath);
 
-     const shortenPath = (path) => {
-         let index = path.lastIndexOf('/');
-         return path.substring(index + 1);
-     }
+    })
+
+    const shortenPath = (path) => {
+        let index = path.lastIndexOf('/');
+        pathMap.set(path.substring(index + 1).toLowerCase(), path);
+
+        return path.substring(index + 1);
+    }
+
+    const handleSearchBar = (e) => {
+        if (e.key === "Enter" && searchValue != "" && pathMap.has(searchValue)) {
+            const fullName = pathMap.get(searchValue); 
+
+            pathTmp = paths;
+            paths = [fullName];
+        } else if (e.key === "Enter" && searchValue == "") {
+            paths = pathTmp ? pathTmp : paths;
+        }
+    }
+
+    const handleAddDirectory = () => {
+        let nickname = document.forms["add-directory"]["nickname"];
+        let directoryPath = document.forms["add-directory"]["directory-path"];
+
+        storedDirectories.push({"nickname": nickname.value, "directoryPath": directoryPath.value})
+        storedDirectories = storedDirectories;
+
+        localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
+        nickname.value = "";
+        directoryPath.value = "";
+        addDirectoryDialog.close();
+    }
+
+    const handleRemoveDirectory = () => {
+        if (!storedDirectories.length) {
+            return;
+        }
+
+        let nickname = document.forms["remove-directory"]["nickname"];
+
+        storedDirectories = storedDirectories.filter(obj => {
+            return obj.nickname !== nickname.value;
+        });
+
+        localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
+        nickname.value = "";
+        removeDirectoryDialog.close();
+    }
 
     $: root = d3.stratify().path((d) => d)(paths);
     $: treeLayout = d3.tree().size([width, height - 40])(root);
-
 </script>
 
 <main style="position: relative;">
     <ul>
         <li>
+            <!-- have this load from localstorage -->
             <select bind:value={homeDirectory} id="homeDirectory" title="choose directory" on:change={async () => await handleLoadDirectory(homeDirectory)}>
-                <option value="D:/brain/Comp Sci">Comp Sci</option>
-                <option value="D:/brain/Cloud Vault">Cloud Vault</option>
+                {#each storedDirectories as storedDirectory}
+                    <option value={storedDirectory.directoryPath}>{storedDirectory.nickname}</option>
+                {/each}
             </select>
         </li>
         <li>
-            <button on:click={() => directoryDialog.showModal()} title="add parent directory">+</button>
+            <button on:click={() => addDirectoryDialog.showModal()} title="add parent directory">+</button>
+        </li>
+        <li>
+            <button class="caution" on:click={() => removeDirectoryDialog.showModal()} title="remove parent directory">-</button>
         </li>
         <li style="float: right;">
-            <input type="text" id="search" spellcheck="false" placeholder="search"/>
+            <input type="text" id="search" spellcheck="false" placeholder="search" bind:value={searchValue} on:keydown={handleSearchBar}/>
         </li>
     </ul>
 
-    <dialog bind:this={directoryDialog}>
-        <input type="text" placeholder="directory nickname" /><br><br>
-        <input type="text" placeholder="path to directory" /><br><br>
-        <button on:click={() => directoryDialog.close()}>close</button>
+    <dialog bind:this={addDirectoryDialog}>
+        <p style="color: white;">provide an existing directory</p>
+        <form on:submit|preventDefault={handleAddDirectory} name="add-directory">
+            <input type="text" name="nickname" placeholder="directory nickname" required/><br><br>
+            <input type="text" name="directory-path" placeholder="absolute path directory" required/><br><br>
+            <input type="submit" value="Add"/><!-- <br><br> -->
+        </form>
+        <!-- <button on:click={() => directoryDialog.close()}>close</button> -->
     </dialog>
+    <dialog bind:this={removeDirectoryDialog}>
+        <p style="color: white;">removing won't delete from the device</p>
+        <form on:submit|preventDefault={handleRemoveDirectory} name="remove-directory">
+            <input type="text" name="nickname" placeholder="directory nickname" required/><br><br>
+            <input class="caution" type="submit" value="Remove"/><!-- <br><br> -->
+        </form>
+        <!-- <button on:click={() => directoryDialog.close()}>close</button> -->
+    </dialog>
+
     <svg width={width} height={height}  viewBox="0, 0, 1000, 600" xmlns="http://www.w3.org/2000/svg">
         {#each root.descendants() as node}
-            {console.log(node)}
             {#if node.id.lastIndexOf('.') == -1}
-                <g>
+                <g id={shortenPath(node.id)}>
                     <title>{shortenPath(node.id)}</title>
                     <!-- <rect class="node" x={node.x - (recWidth / 2)} y={node.y} width={recWidth} height={recHeight} rx="5" on:dblclick={() => console.log('clicked;')}/> -->
-                    <svg class="node" x={node.x - (recWidth / 2)} y={node.y} version="1.1" id={shortenPath(node.id)} xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width={recWidth} height={recHeight} fill="#000000">
+                    <svg id={node.id} class="node" x={node.x - (recWidth / 2)} y={node.y} version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width={recWidth} height={recHeight} fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                         <g id="SVGRepo_iconCarrier">
                             <path id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
@@ -88,9 +159,9 @@
                     <!-- <text class="label" x={node.x} y={node.y + 9} font-size="10px" fill="white">{node.id}</text> -->
                 </g>
             {:else}
-                <g>
+                <g id={shortenPath(node.id)}>
                     <title>{shortenPath(node.id)}</title>
-                    <svg class="node" x={node.x - (recHeight / 2)} y={node.y - 10} version="1.0" id={shortenPath(node.id)} xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width={recHeight} height={recWidth} viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve" fill="#000000">
+                    <svg id={node.id} class="node" x={node.x - (recHeight / 2)} y={node.y - 10} version="1.0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width={recHeight} height={recWidth} viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve" fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                         <g id="SVGRepo_iconCarrier">
                             <g>
