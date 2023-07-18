@@ -12,7 +12,6 @@
     let storedDirectories = localStorage.getItem("storedDirectories") ? JSON.parse(localStorage.getItem("storedDirectories")) : [];
 
     let paths = ["welcome, create a directory^"]; // main path array, everything tracks back to this
-    let pathMap = new Map(); // mappings for shorten paths to be linked to paths
     let pathTmp; // to be able to go back to the original paths when done with searching
 
     let width = 1000;
@@ -23,7 +22,6 @@
     async function handleLoadDirectory(homeDirectory) {
         received =  await invoke("load_directory", {directory: homeDirectory});
         paths = [];
-        pathMap.clear();
         pathTmp = [];
         
         for (let i = 0; i < received.length; i++) {
@@ -41,22 +39,22 @@
         }
         
         await handleLoadDirectory(storedDirectories[0].directoryPath);
-
     })
 
     const shortenPath = (path) => {
         let index = path.lastIndexOf('/');
-        pathMap.set(path.substring(index + 1).toLowerCase(), path);
 
         return path.substring(index + 1);
     }
 
     const handleSearchBar = (e) => {
-        if (e.key === "Enter" && searchValue != "" && pathMap.has(searchValue)) {
-            const fullName = pathMap.get(searchValue); 
+        if (e.key === "Enter" && searchValue != "" && searchValue != "") {
+            let fullName = paths.filter(obj => {
+                return obj.toLowerCase().includes(searchValue.toLowerCase());
+            })
 
             pathTmp = paths;
-            paths = [fullName];
+            paths = fullName;
         } else if (e.key === "Enter" && searchValue == "") {
             paths = pathTmp ? pathTmp : paths;
         }
@@ -90,6 +88,11 @@
         nickname.value = "";
         removeDirectoryDialog.close();
     }
+    
+    const handleContext = async () => {
+        // rmb to actually make a context menu, and instead have this code below be one of the onclick functions
+        await invoke("make_properties_window");
+    }
 
     $: root = d3.stratify().path((d) => d)(paths);
     $: treeLayout = d3.tree().size([width, height - 40])(root);
@@ -98,7 +101,6 @@
 <main style="position: relative;">
     <ul>
         <li>
-            <!-- have this load from localstorage -->
             <select bind:value={homeDirectory} id="homeDirectory" title="choose directory" on:change={async () => await handleLoadDirectory(homeDirectory)}>
                 {#each storedDirectories as storedDirectory}
                     <option value={storedDirectory.directoryPath}>{storedDirectory.nickname}</option>
@@ -121,17 +123,15 @@
         <form on:submit|preventDefault={handleAddDirectory} name="add-directory">
             <input type="text" name="nickname" placeholder="directory nickname" required/><br><br>
             <input type="text" name="directory-path" placeholder="absolute path directory" required/><br><br>
-            <input type="submit" value="Add"/><!-- <br><br> -->
+            <input type="submit" value="Add"/>
         </form>
-        <!-- <button on:click={() => directoryDialog.close()}>close</button> -->
     </dialog>
     <dialog bind:this={removeDirectoryDialog}>
         <p style="color: white;">removing won't delete from the device</p>
         <form on:submit|preventDefault={handleRemoveDirectory} name="remove-directory">
             <input type="text" name="nickname" placeholder="directory nickname" required/><br><br>
-            <input class="caution" type="submit" value="Remove"/><!-- <br><br> -->
+            <input class="caution" type="submit" value="Remove"/>
         </form>
-        <!-- <button on:click={() => directoryDialog.close()}>close</button> -->
     </dialog>
 
     <svg width={width} height={height}  viewBox="0, 0, 1000, 600" xmlns="http://www.w3.org/2000/svg">
@@ -139,7 +139,6 @@
             {#if node.id.lastIndexOf('.') == -1}
                 <g id={shortenPath(node.id)}>
                     <title>{shortenPath(node.id)}</title>
-                    <!-- <rect class="node" x={node.x - (recWidth / 2)} y={node.y} width={recWidth} height={recHeight} rx="5" on:dblclick={() => console.log('clicked;')}/> -->
                     <svg id={node.id} class="node" x={node.x - (recWidth / 2)} y={node.y} version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width={recWidth} height={recHeight} fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                         <g id="SVGRepo_iconCarrier">
@@ -188,6 +187,8 @@
         {/each}
     </svg>
 </main>
+
+<svelte:window on:contextmenu|preventDefault={handleContext}/>
 
 <style>
     /* .label {

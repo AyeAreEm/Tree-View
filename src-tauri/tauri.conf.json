@@ -4,7 +4,7 @@
     "beforeBuildCommand": "npm run build",
     "devPath": "http://localhost:1420",
     "distDir": "../dist",
-    "withGlobalTauri": false
+    "withGlobalTauri": true
   },
   "package": {
     "productName": "tree-view",
@@ -37,9 +37,9 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "tree-view",
-        "width": 800,
-        "height": 600
+        "title": "Tree View",
+        "width": 1100,
+        "height": 650
       }
     ]
   }

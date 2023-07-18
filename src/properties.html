@@ -1,0 +1,44 @@
+<html>
+<head>
+    <title>Properties</title>
+
+    <style>
+        :root {
+            font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+            font-size: 16px;
+
+            margin: 0;
+            padding: 0;
+            text-align: center;
+
+            color: #f6f6f6;
+            background-color: #252525;
+
+            font-synthesis: none;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-text-size-adjust: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    hello there
+
+    <script>
+        const {invoke} = window.__TAURI__.tauri;
+        const listen = window.__TAURI__.event.listen;
+
+        setTimeout(() => {
+            invoke("test");
+        }, 2000);
+
+        listen('properties', (e) => {
+            console.log(e);
+        });
+    </script>
+</body>
+
+
+</html>
