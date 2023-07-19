@@ -1,9 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::process::Command;
+
 use tauri::Size;
 use tauri::Window;
 use walkdir::WalkDir;
+use open;
 use serde::{Deserialize, Serialize };
 
 #[derive(Deserialize, Serialize)]
@@ -18,23 +21,6 @@ struct Properties {
 
 fn get_extension(path: &str) -> Option<&str> {
     path.split('.').last()
-}
-
-#[tauri::command]
-fn load_directory(directory: &str) -> Vec<String> {
-    let content: Vec<_> = WalkDir::new(directory)
-                        .into_iter()
-                        .filter_map(|f| f.ok())
-                        .map(|f| f.path().to_owned())
-                        .collect();
-
-    let mut content_string: Vec<String> = Vec::new();
-
-    for i in content {
-        content_string.push(i.display().to_string());
-    }
-
-    return content_string
 }
 
 fn get_properties(directory: &str, filename: &str) -> Properties {
@@ -58,6 +44,24 @@ fn get_properties(directory: &str, filename: &str) -> Properties {
 }
 
 #[tauri::command]
+fn load_directory(directory: &str) -> Vec<String> {
+    let content: Vec<_> = WalkDir::new(directory)
+                        .into_iter()
+                        .filter_map(|f| f.ok())
+                        .map(|f| f.path().to_owned())
+                        .collect();
+
+    let mut content_string: Vec<String> = Vec::new();
+
+    for i in content {
+        content_string.push(i.display().to_string());
+    }
+
+    return content_string
+}
+
+
+#[tauri::command]
 async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
     let new_window = tauri::WindowBuilder::new(
         &handle,
@@ -72,14 +76,34 @@ async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
 }
 
 #[tauri::command]
-fn test(window: Window, directory: String, filename: String) {
+fn get_properties_command(window: Window, directory: String, filename: String) {
     let properties = get_properties(&directory, &filename);
     window.emit("properties", &properties).unwrap();
 }
 
+#[tauri::command]
+fn open_location(location: String, application: String) {
+    let result = location.replace("/", "\\");
+
+    if application == "" {
+        open::that(result).unwrap();
+        return
+    } else if application == "nvim" {
+        open::with(result, application).unwrap();
+        return
+    }
+
+    match open::with(result.to_owned(), application) {
+        Ok(_) => (),
+        Err(_) => {
+            open::with(result, "cmd").unwrap();
+        }, 
+    }
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, test])
+        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, open_location])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

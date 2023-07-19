@@ -20,6 +20,11 @@
             -webkit-text-size-adjust: 100%;
         }
 
+        .content {
+            width: 100%;
+            height: 100%;
+        }
+
         p {
             padding-top: 0.6em;
             padding-bottom: 0.6em;
@@ -27,25 +32,54 @@
             padding-right: 20px;
 
         }
+
+        button {
+            border-radius: 8px;
+            border: 1px solid transparent;
+            padding: 0.6em 1.2em;
+            font-size: 1em;
+            font-weight: 500;
+            color: #ffffff;
+            background-color: #0f0f0f98;
+            transition: border-color 0.25s;
+            box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+            outline: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            border-color: #396cd8;
+        }
     </style>
 </head>
 
 <body>
-    <p id="filename"></p>
-    <hr />
-    <p id="fileExt"></p>
-    <p id="fileSize"></p>
-    <p id="location"></p>
-    <hr />
-    <p id="created"></p>
+    <div class="content" style="position: relative">
+        <p id="filename"></p>
+        <hr />
+
+        <p id="fileExt"></p>
+        <p id="fileSize"></p>
+        <p id="location" title="click to copy" style="cursor: pointer"></p>
+        <hr />
+
+        <p id="created"></p>
+        <hr />
+        
+        <button style="position: absolute; bottom: 0; left: 0;" onclick="openLocation('nvim')">neovim</button>
+        <button style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);" onclick="openLocation('')">open</button>
+        <button style="position: absolute; bottom: 0; right: 0;" onclick="openLocation('cmd')">terminal</button>
+    </div>
 
     <script>
         const {invoke} = window.__TAURI__.tauri;
         const listen = window.__TAURI__.event.listen;
 
+        let directoryLocation = "";
 
         listen('properties', (e) => {
             let size;
+            directoryLocation = e.payload.location;
 
             if (e.payload.length > 1024) {
                 size = `${(e.payload.length / 1024).toFixed(2)} KB`;
@@ -63,9 +97,15 @@
             document.getElementById("filename").textContent = `name: ${e.payload.filename}`;
             document.getElementById("fileExt").textContent = `extension: ${e.payload.extension}`;
             document.getElementById("fileSize").textContent = `size: ${size}`;
-            document.getElementById("location").textContent = `location: ${e.payload.location}`;
+            document.getElementById("location").textContent = `location: ${directoryLocation}`;
+            document.getElementById("location").onclick = navigator.clipboard.writeText(`'${directoryLocation}'`);
 
         });
+
+        function openLocation(application) {
+            console.log(directoryLocation);
+            invoke("open_location", {location: directoryLocation, application});
+        }
     </script>
 </body>
 </html>

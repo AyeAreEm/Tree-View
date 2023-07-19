@@ -95,7 +95,7 @@
         await invoke("make_properties_window", {filename});
 
         setTimeout( async () => {
-            await invoke("test", {directory, filename});
+            await invoke("get_properties_command", {directory, filename});
         }, 100);
     }
 

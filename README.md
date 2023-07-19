@@ -10,10 +10,11 @@ be wary of Directory Man!
 - ✅ Show files and folders in a vertical tree diagram
 - 👷‍♂️ Get properties of a file [note: the properties part is actually done but opening a file and such is still being worked on]
 - Add a new file or folder
-- Remove a file or folder - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
-- Open a file in its respective app 
-- Option to open directory in Windows File Explorer (maybe mac later)
-- Option to open directory in terminal?
+- Remove a file or folder
+- Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
+- ✅ Open a file in its respective app 
+- ✅ Option to open directory in Windows File Explorer (maybe mac later)
+- 👷‍♂️ Option to open directory in terminal?
 
 ---
 
@@ -38,6 +39,8 @@ It'll probably be named `.treeview` or something along those lines
 [WalkDir](https://docs.rs/walkdir/latest/walkdir/) (Rust)
 
 [D3](https://d3js.org) (Javascript)
+
+[Open](https://docs.rs/open/latest/open/) (Rust)
 
 ### Use of WalkDir
 This is crate makes the nightmare of traversing a directory recursively incredibly easy
@@ -73,5 +76,10 @@ $: treeLayout = d3.tree().size([width, height - 40])(root);
     <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke="#adadad"></line>
 {/each}
 ```
+### Use of Open
+Perfect and simple. This crate lets you open a file in the os's default app (whatever you set that default to be) or in a specific app.
 
-
+```rust
+open::that(location).unwrap();
+```
+That's it. literally that's it. Chef's kiss.
