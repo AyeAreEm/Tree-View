@@ -1,6 +1,7 @@
 # Tree View
 For Tree View to work, create a home directory (any name) where you want to house your files and folders.
 
+be wary of Directory Man!
 ![sample image](sample.png)
 
 ## Features
