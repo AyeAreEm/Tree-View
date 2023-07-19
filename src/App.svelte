@@ -89,9 +89,14 @@
         removeDirectoryDialog.close();
     }
     
-    const handleContext = async () => {
+    const handleContext = async (directory, filename) => {
         // rmb to actually make a context menu, and instead have this code below be one of the onclick functions
-        await invoke("make_properties_window");
+
+        await invoke("make_properties_window", {filename});
+
+        setTimeout( async () => {
+            await invoke("test", {directory, filename});
+        }, 100);
     }
 
     $: root = d3.stratify().path((d) => d)(paths);
@@ -99,7 +104,7 @@
 </script>
 
 <main style="position: relative;">
-    <ul>
+    <ul class="unselectable" unselectable="on">
         <li>
             <select bind:value={homeDirectory} id="homeDirectory" title="choose directory" on:change={async () => await handleLoadDirectory(homeDirectory)}>
                 {#each storedDirectories as storedDirectory}
@@ -136,9 +141,11 @@
 
     <svg width={width} height={height}  viewBox="0, 0, 1000, 600" xmlns="http://www.w3.org/2000/svg">
         {#each root.descendants() as node}
+            {@const short = shortenPath(node.id)}
+            <!-- {console.log(node)} -->
             {#if node.id.lastIndexOf('.') == -1}
-                <g id={shortenPath(node.id)}>
-                    <title>{shortenPath(node.id)}</title>
+                <g id={short} on:dblclick={async () => await handleContext(node.data, short)}>
+                    <title>{short}</title>
                     <svg id={node.id} class="node" x={node.x - (recWidth / 2)} y={node.y} version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width={recWidth} height={recHeight} fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                         <g id="SVGRepo_iconCarrier">
@@ -158,8 +165,8 @@
                     <!-- <text class="label" x={node.x} y={node.y + 9} font-size="10px" fill="white">{node.id}</text> -->
                 </g>
             {:else}
-                <g id={shortenPath(node.id)}>
-                    <title>{shortenPath(node.id)}</title>
+                <g id={short} on:dblclick={async () => await handleContext(node.data, short)}>
+                    <title>{short}</title>
                     <svg id={node.id} class="node" x={node.x - (recHeight / 2)} y={node.y - 10} version="1.0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width={recHeight} height={recWidth} viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve" fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                         <g id="SVGRepo_iconCarrier">
@@ -188,7 +195,7 @@
     </svg>
 </main>
 
-<svelte:window on:contextmenu|preventDefault={handleContext}/>
+<svelte:window on:contextmenu={handleContext}/>
 
 <style>
     /* .label {

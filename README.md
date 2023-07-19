@@ -1,12 +1,13 @@
 # Tree View
 For Tree View to work, create a home directory (any name) where you want to house your files and folders.
 
+![sample image](sample.png)
+
 ## Features
 - ✅ Add new `master` directories and switch between them
 - ✅ Search for a file in the current directory
 - ✅ Show files and folders in a vertical tree diagram
-- Show a context specific menu on right click
-- 👷‍♂️ Get properties of a file [note for me: don't get all properties when getting the directory content, only get the properties on request for a particular one - should have quick load times, if even it's only 40ms faster.]
+- 👷‍♂️ Get properties of a file [note: the properties part is actually done but opening a file and such is still being worked on]
 - Add a new file or folder
 - Remove a file or folder - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - Open a file in its respective app 

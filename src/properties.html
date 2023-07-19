@@ -9,7 +9,6 @@
 
             margin: 0;
             padding: 0;
-            text-align: center;
 
             color: #f6f6f6;
             background-color: #252525;
@@ -20,25 +19,53 @@
             -moz-osx-font-smoothing: grayscale;
             -webkit-text-size-adjust: 100%;
         }
+
+        p {
+            padding-top: 0.6em;
+            padding-bottom: 0.6em;
+            padding-left: 20px;
+            padding-right: 20px;
+
+        }
     </style>
 </head>
 
 <body>
-    hello there
+    <p id="filename"></p>
+    <hr />
+    <p id="fileExt"></p>
+    <p id="fileSize"></p>
+    <p id="location"></p>
+    <hr />
+    <p id="created"></p>
 
     <script>
         const {invoke} = window.__TAURI__.tauri;
         const listen = window.__TAURI__.event.listen;
 
-        setTimeout(() => {
-            invoke("test");
-        }, 2000);
 
         listen('properties', (e) => {
-            console.log(e);
+            let size;
+
+            if (e.payload.length > 1024) {
+                size = `${(e.payload.length / 1024).toFixed(2)} KB`;
+            } else if (e.payload.length > 1024**2) {
+                size = `${(e.payload.length / 1024**2).toFixed(2)} MB`;
+            } else if (e.payload.length > 1024**3) {
+                size = `${(e.payload.length / 1024**3).toFixed(2)} GB`;
+            } else {
+                size = `${e.payload.length} bytes`;
+            }
+
+            let d = new Date(e.payload.created * 1000);
+            document.getElementById("created").textContent = `created: ${d}`;
+
+            document.getElementById("filename").textContent = `name: ${e.payload.filename}`;
+            document.getElementById("fileExt").textContent = `extension: ${e.payload.extension}`;
+            document.getElementById("fileSize").textContent = `size: ${size}`;
+            document.getElementById("location").textContent = `location: ${e.payload.location}`;
+
         });
     </script>
 </body>
-
-
 </html>

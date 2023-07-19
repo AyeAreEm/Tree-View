@@ -8,10 +8,11 @@ use serde::{Deserialize, Serialize };
 
 #[derive(Deserialize, Serialize)]
 struct Properties {
+    filename: String,
+    location: String,
     extension: String,
     length: u64,
     is_directory: bool,
-    is_file: bool,
     created: u64,
 }
 
@@ -36,8 +37,8 @@ fn load_directory(directory: &str) -> Vec<String> {
     return content_string
 }
 
-fn get_properties() -> Properties {
-    let metadata = std::fs::metadata("C:/Users/agaye/Desktop/testing/first-test.txt").unwrap();
+fn get_properties(directory: &str, filename: &str) -> Properties {
+    let metadata = std::fs::metadata(directory).unwrap();
     let mut created: u64 = 0;
 
     if let Ok(time) = metadata.created() {
@@ -45,10 +46,11 @@ fn get_properties() -> Properties {
     }
 
     let properties = Properties {
-        extension: get_extension("C:/Users/agaye/Desktop/testing/first-test.txt").unwrap().to_string(),
+        filename: filename.to_string(),
+        location: directory.to_string(),
+        extension: if metadata.is_file() {get_extension(directory).unwrap().to_string()} else {"Folder".to_string()},
         length: metadata.len(),
         is_directory: metadata.is_dir(),
-        is_file: metadata.is_file(),
         created,
     };
 
@@ -56,7 +58,7 @@ fn get_properties() -> Properties {
 }
 
 #[tauri::command]
-async fn make_properties_window(handle: tauri::AppHandle) {
+async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
     let new_window = tauri::WindowBuilder::new(
         &handle,
         "Properties",
@@ -65,11 +67,13 @@ async fn make_properties_window(handle: tauri::AppHandle) {
 
     new_window.set_size(Size::Physical(tauri::PhysicalSize { width: 350, height: 450 })).unwrap();
     new_window.set_resizable(false).unwrap();
+    new_window.set_minimizable(false).unwrap();
+    new_window.set_title(format!("{filename} | Properties").as_str()).unwrap();
 }
 
 #[tauri::command]
-fn test(window: Window) {
-    let properties = get_properties();
+fn test(window: Window, directory: String, filename: String) {
+    let properties = get_properties(&directory, &filename);
     window.emit("properties", &properties).unwrap();
 }
 
