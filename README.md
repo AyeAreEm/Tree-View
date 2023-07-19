@@ -22,7 +22,7 @@ Using Rust (Tauri) as the backend and Javascript (Svelte and D3) as the frontend
 
 Rust recursively gets the files and folders in a chosen directory, supplies it to the frontend where it is drawn into a tree diagram.
 
-### But how does the linking unrelated folders and files work?
+### But how does linking unrelated folders and files work?
 Currently, haven't added it yet but I believe I can create my own dot file (.gitignorre, .git, .env, etc).
 It'll probably be named `.treeview` or something along those lines
 
