@@ -13,8 +13,8 @@ be wary of Directory Man!
 - Remove a file or folder
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - ✅ Open a file in its respective app 
-- ✅ Option to open directory in Windows File Explorer (maybe mac later)
-- 👷‍♂️ Option to open directory in terminal? [note: os's don't like languages interacting with the terminal outside of it's current "instance" so creating a terminal is g, programmatically changing the directory of the spawned terminal is not g]
+- ✅ Option to open directory in Windows File Explorer
+- 👷‍♂️ Option to open directory in terminal? mac ✅ windows 👷‍♂️ [note: os's don't like languages interacting with the terminal outside of it's current "instance" so creating a terminal is g, programmatically changing the directory of the spawned terminal is not g]
 
 ---
 

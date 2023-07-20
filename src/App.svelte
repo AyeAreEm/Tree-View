@@ -6,7 +6,6 @@
     let homeDirectory;
     let addDirectoryDialog;
     let removeDirectoryDialog;
-    let received;
     let searchValue;
 
     let storedDirectories = localStorage.getItem("storedDirectories") ? JSON.parse(localStorage.getItem("storedDirectories")) : [];
@@ -20,7 +19,7 @@
     let recHeight = 40;
 
     async function handleLoadDirectory(homeDirectory) {
-        received =  await invoke("load_directory", {directory: homeDirectory});
+        let received =  await invoke("load_directory", {directory: homeDirectory});
         paths = [];
         pathTmp = [];
         
@@ -53,10 +52,11 @@
                 return obj.toLowerCase().includes(searchValue.toLowerCase());
             })
 
-            pathTmp = paths;
-            paths = fullName;
+            paths = pathTmp.length === 0 ? paths : pathTmp; // this sets paths to the old paths
+            pathTmp = paths; // this the temperary value to the old paths
+            paths = fullName; // this updates d3 with the found searched terms
         } else if (e.key === "Enter" && searchValue == "") {
-            paths = pathTmp ? pathTmp : paths;
+            paths = pathTmp.length !== 0 ? pathTmp : paths;
         }
     }
 
