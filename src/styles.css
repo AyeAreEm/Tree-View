@@ -64,6 +64,12 @@ button, select {
     outline: none;
 }
 
+select {
+    -moz-appearance: none; 
+    appearance: none;
+    -webkit-appearance: none; 
+}
+
 button, select, input[type=submit] {
     cursor: pointer;
 }

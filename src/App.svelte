@@ -96,7 +96,7 @@
 
         setTimeout( async () => {
             await invoke("get_properties_command", {directory, filename});
-        }, 100);
+        }, 300);
     }
 
     $: root = d3.stratify().path((d) => d)(paths);

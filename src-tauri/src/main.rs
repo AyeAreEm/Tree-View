@@ -75,7 +75,7 @@ async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
         tauri::WindowUrl::App("../../src/properties.html".into())
     ).build().unwrap();
 
-    new_window.set_size(Size::Physical(tauri::PhysicalSize { width: 350, height: 450 })).unwrap();
+    new_window.set_size(Size::Logical(tauri::LogicalSize { width: 350.0, height: 450.0 })).unwrap();
     new_window.set_resizable(false).unwrap();
     new_window.set_minimizable(false).unwrap();
     new_window.set_title(format!("{filename} | Properties").as_str()).unwrap();
@@ -89,13 +89,10 @@ fn get_properties_command(window: Window, directory: String, filename: String) {
 
 #[tauri::command]
 fn open_location(location: String, application: String) {
-    let result = location.replace("/", "\\");
+    let result = if env::consts::OS == "windows" { location.replace("/", "\\") } else { location };
 
     if application == "" {
         open::that(result).unwrap();
-        return
-    } else if application == "nvim" {
-        open::with(result, application).unwrap();
         return
     }
 
@@ -105,7 +102,14 @@ fn open_location(location: String, application: String) {
             if env::consts::OS == "windows" {
                 open::with(result, "cmd").unwrap();
             } else {
-                Command::new("open").arg("-a").arg("Terminal").spawn().unwrap();
+                println!("{}", result);
+                Command::new("open")
+                    .arg("-a")
+                    .arg("Terminal")
+                    // lmao i don't know what else to do
+                    .arg(format!("../../../../../../..{}", result))
+                    .spawn()
+                    .unwrap();
             }
         }, 
     }
