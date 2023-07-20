@@ -8,13 +8,13 @@ be wary of Directory Man!
 - ✅ Add new `master` directories and switch between them
 - ✅ Search for a file in the current directory
 - ✅ Show files and folders in a vertical tree diagram
-- 👷‍♂️ Get properties of a file [note: the properties part is actually done but opening a file and such is still being worked on]
+- ✅ Get properties of a file 
 - Add a new file or folder
 - Remove a file or folder
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - ✅ Open a file in its respective app 
 - ✅ Option to open directory in Windows File Explorer (maybe mac later)
-- 👷‍♂️ Option to open directory in terminal?
+- 👷‍♂️ Option to open directory in terminal? [note: os's don't like languages interacting with the terminal outside of it's current "instance" so creating a terminal is g, programmatically changing the directory of the spawned terminal is not g]
 
 ---
 
@@ -41,6 +41,8 @@ It'll probably be named `.treeview` or something along those lines
 [D3](https://d3js.org) (Javascript)
 
 [Open](https://docs.rs/open/latest/open/) (Rust)
+
+[Rand](https://docs.rs/rand/latest/rand/) (Rust)
 
 ### Use of WalkDir
 This is crate makes the nightmare of traversing a directory recursively incredibly easy
@@ -78,8 +80,18 @@ $: treeLayout = d3.tree().size([width, height - 40])(root);
 ```
 ### Use of Open
 Perfect and simple. This crate lets you open a file in the os's default app (whatever you set that default to be) or in a specific app.
+I could've used Rust's built in Command library but I noticed when developing, if you spawn a new cmd, it spawns it in any currently running cmds.
+Since I have one running to hot reload this project, it would be a hassle if it kept spawning it in the one I was using.
 
 ```rust
 open::that(location).unwrap();
 ```
 That's it. literally that's it. Chef's kiss.
+
+### Use of Rand
+I don't think there's a lot to say about this one. It's just a random number generator.
+Rust doesn't have a rng included in its stdlib.
+
+```rust
+let rng = rand::thread_rng();
+```

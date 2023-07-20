@@ -1,10 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::env;
+use std::process::Command;
 use tauri::Size;
 use tauri::Window;
 use walkdir::WalkDir;
 use open;
+use rand::Rng;
 use serde::{Deserialize, Serialize };
 
 #[derive(Deserialize, Serialize)]
@@ -58,12 +61,17 @@ fn load_directory(directory: &str) -> Vec<String> {
     return content_string
 }
 
-
 #[tauri::command]
 async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
+    // this is needed because tauri doesn't like having multiple windows with the same label
+    // but for some reason, i can't just use "filename"
+    // so random number it is
+
+    let label = rand::thread_rng().gen_range(0..10000);
+
     let new_window = tauri::WindowBuilder::new(
         &handle,
-        "Properties",
+        format!("{}", label),
         tauri::WindowUrl::App("../../src/properties.html".into())
     ).build().unwrap();
 
@@ -94,7 +102,11 @@ fn open_location(location: String, application: String) {
     match open::with(result.to_owned(), application) {
         Ok(_) => (),
         Err(_) => {
-            open::with(result, "cmd").unwrap();
+            if env::consts::OS == "windows" {
+                open::with(result, "cmd").unwrap();
+            } else {
+                Command::new("open").arg("-a").arg("Terminal").spawn().unwrap();
+            }
         }, 
     }
 }
