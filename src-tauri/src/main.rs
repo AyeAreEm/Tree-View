@@ -1,6 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+// really gotta work on the .unwrap()'s
+// should do actual error handling
+
 use std::env;
 use std::process::Command;
 use tauri::Size;
