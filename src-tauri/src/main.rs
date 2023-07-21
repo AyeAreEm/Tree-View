@@ -47,15 +47,22 @@ fn get_properties(directory: &str, filename: &str) -> Properties {
 #[tauri::command]
 fn load_directory(directory: &str) -> Vec<String> {
     let content: Vec<_> = WalkDir::new(directory)
-                        .into_iter()
-                        .filter_map(|f| f.ok())
-                        .map(|f| f.path().to_owned())
-                        .collect();
+                .follow_links(true)
+                .into_iter()
+                .filter_map(|f| f.ok())
+                .filter(|f| !f.path().display().to_string().contains("node_modules") && !f.path().display().to_string().contains(".git") && !f.path().display().to_string().contains("target"))
+                .map(|f| f.path().display().to_string().to_owned())
+                .collect();
 
     let mut content_string: Vec<String> = Vec::new();
 
     for i in content {
-        content_string.push(i.display().to_string());
+        content_string.push(i);
+    }
+
+    if content_string.len() > 50 {
+        let content_msg: Vec<String> = vec!["this directory too big lol soz.".to_string()];
+        return content_msg;
     }
 
     return content_string
@@ -100,13 +107,20 @@ fn open_location(location: String, application: String) {
         Ok(_) => (),
         Err(_) => {
             if env::consts::OS == "windows" {
-                open::with(result, "cmd").unwrap();
-            } else {
                 println!("{}", result);
+                Command::new("cmd")
+                    .arg("/K")
+                    .arg("cd")
+                    .arg("/d")
+                    .arg(format!("{}", result))
+                    .spawn()
+                    .unwrap();
+            } else {
                 Command::new("open")
                     .arg("-a")
                     .arg("Terminal")
                     // lmao i don't know what else to do
+                    // try "/Macintosh\ HD"
                     .arg(format!("../../../../../../..{}", result))
                     .spawn()
                     .unwrap();

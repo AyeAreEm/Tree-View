@@ -8,13 +8,14 @@
     let removeDirectoryDialog;
     let searchValue;
 
+    // maybe have "artifical links" stored in localstorage either in its own or maybe better to use storedDirectories but change it to an object
     let storedDirectories = localStorage.getItem("storedDirectories") ? JSON.parse(localStorage.getItem("storedDirectories")) : [];
 
     let paths = ["welcome, create a directory^"]; // main path array, everything tracks back to this
     let pathTmp; // to be able to go back to the original paths when done with searching
 
-    let width = 1000;
-    let height = 550;
+    let width = 1500;
+    let height = 825;
     let recWidth = 60;
     let recHeight = 40;
 
@@ -30,6 +31,7 @@
         }
 
         paths = received;
+        console.log(root)
     }
 
     onMount(async () => {
@@ -48,11 +50,12 @@
 
     const handleSearchBar = (e) => {
         if (e.key === "Enter" && searchValue != "" && searchValue != "") {
+            paths = pathTmp.length !== 0 ? pathTmp : paths;
+
             let fullName = paths.filter(obj => {
                 return obj.toLowerCase().includes(searchValue.toLowerCase());
             })
 
-            paths = pathTmp.length === 0 ? paths : pathTmp; // this sets paths to the old paths
             pathTmp = paths; // this the temperary value to the old paths
             paths = fullName; // this updates d3 with the found searched terms
         } else if (e.key === "Enter" && searchValue == "") {
@@ -139,11 +142,11 @@
         </form>
     </dialog>
 
-    <svg width={width} height={height}  viewBox="0, 0, 1000, 600" xmlns="http://www.w3.org/2000/svg">
+    <svg width={width} height={height}  viewBox="0, 0, 1500, 875" xmlns="http://www.w3.org/2000/svg">
         {#each root.descendants() as node}
             {@const short = shortenPath(node.id)}
             <!-- {console.log(node)} -->
-            {#if node.id.lastIndexOf('.') == -1}
+            {#if node.id.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
                 <g id={short} on:dblclick={async () => await handleContext(node.data, short)}>
                     <title>{short}</title>
                     <svg id={node.id} class="node" x={node.x - (recWidth / 2)} y={node.y} version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width={recWidth} height={recHeight} fill="#000000">
@@ -198,11 +201,6 @@
 <svelte:window on:contextmenu={handleContext}/>
 
 <style>
-    /* .label {
-        text-anchor: middle;
-        pointer-events: none;
-    } */
-
     .node {
         cursor: pointer;
     }

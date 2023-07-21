@@ -14,7 +14,13 @@ be wary of Directory Man!
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - ✅ Open a file in its respective app 
 - ✅ Option to open directory in Windows File Explorer
-- 👷‍♂️ Option to open directory in terminal? mac ✅ windows 👷‍♂️ [note: os's don't like languages interacting with the terminal outside of it's current "instance" so creating a terminal is g, programmatically changing the directory of the spawned terminal is not g]
+- 👷‍♂️ Option to open directory in terminal? mac ✅ windows ✅ [note: os's don't like languages interacting with the terminal outside of it's current "instance" so creating a terminal is g, programmatically changing the directory of the spawned terminal is not g]
+
+## Todos
+- ✅ Don't display big folders such as node_modules and .git
+- Don't display dot files such as .DS_Store and .gitignore? (maybe)
+- Option to not display chosen folders (maybe)
+- Customisation ? (i.e. background, icons, etc.)
 
 ---
 
@@ -26,6 +32,8 @@ Rust recursively gets the files and folders in a chosen directory, supplies it t
 ### But how does linking unrelated folders and files work?
 Currently, haven't added it yet but I believe I can create my own dot file (.gitignorre, .git, .env, etc).
 It'll probably be named `.treeview` or something along those lines
+
+Maybe just draw a line connecting them on the frontend and save it to localstorage? not sure.
 
 ---
 
