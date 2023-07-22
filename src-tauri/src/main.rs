@@ -110,7 +110,6 @@ fn open_location(location: String, application: String) {
         Ok(_) => (),
         Err(_) => {
             if env::consts::OS == "windows" {
-                println!("{}", result);
                 Command::new("cmd")
                     .arg("/K")
                     .arg("cd")
@@ -122,9 +121,7 @@ fn open_location(location: String, application: String) {
                 Command::new("open")
                     .arg("-a")
                     .arg("Terminal")
-                    // lmao i don't know what else to do
-                    // try "/Macintosh\ HD"
-                    .arg(format!("../../../../../../..{}", result))
+                    .arg(format!("/{}", result))
                     .spawn()
                     .unwrap();
             }

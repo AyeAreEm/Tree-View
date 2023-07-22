@@ -103,10 +103,10 @@
         });
 
         function openLocation(application) {
-            if (navigator.platform != "Win32" && (application == "nvim")) {
-                alert("not supported lols. soz");
-                return;
-            }
+            //if (navigator.platform != "Win32" && (application == "nvim")) {
+            //    alert("not supported lols. soz");
+            //    return;
+            //}
 
             invoke("open_location", {location: directoryLocation, application});
         }

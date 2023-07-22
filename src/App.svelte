@@ -14,8 +14,8 @@
     let paths = ["welcome, create a directory^"]; // main path array, everything tracks back to this
     let pathTmp; // to be able to go back to the original paths when done with searching
 
-    let width = 1500;
-    let height = 825;
+    let width = 1400;
+    let height = 775;
     let recWidth = 60;
     let recHeight = 40;
 
@@ -142,7 +142,7 @@
         </form>
     </dialog>
 
-    <svg width={width} height={height}  viewBox="0, 0, 1500, 875" xmlns="http://www.w3.org/2000/svg">
+    <svg width={width} height={height}  viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
         {#each root.descendants() as node}
             {@const short = shortenPath(node.id)}
             <!-- {console.log(node)} -->
