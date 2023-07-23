@@ -23,12 +23,26 @@ struct Properties {
     created: u64,
 }
 
-fn get_extension(path: &str) -> Option<&str> {
-    path.split('.').last()
+fn get_extension(path: &str, is_file: bool) -> String {
+    if is_file {
+        let extension = match path.split(".").last() {
+            Some(extension) => extension,
+            None => "problem with getting data soz.",
+        };
+        return extension.to_string();
+    }
+
+    return "folder".to_string();
+
 }
 
 fn get_properties(directory: &str, filename: &str) -> Properties {
-    let metadata = std::fs::metadata(directory).unwrap();
+    let metadata_result = std::fs::metadata(directory);
+    let metadata = match metadata_result {
+        Ok(metadata) => metadata,
+        Err(_) => return Properties { filename: "problem with getting data soz.".to_string(), location: "".to_string(), extension: "".to_string(), length: 0, is_directory: false, created: 0 },
+    };
+
     let mut created: u64 = 0;
 
     if let Ok(time) = metadata.created() {
@@ -38,7 +52,7 @@ fn get_properties(directory: &str, filename: &str) -> Properties {
     let properties = Properties {
         filename: filename.to_string(),
         location: directory.to_string(),
-        extension: if metadata.is_file() {get_extension(directory).unwrap().to_string()} else {"Folder".to_string()},
+        extension: get_extension(directory, metadata.is_file()),
         length: metadata.len(),
         is_directory: metadata.is_dir(),
         created,
@@ -82,6 +96,7 @@ async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
     let new_window = tauri::WindowBuilder::new(
         &handle,
         format!("{}", label),
+        // figure out how to build with this
         tauri::WindowUrl::App("../../src/properties.html".into())
     ).build().unwrap();
 
@@ -99,9 +114,17 @@ fn get_properties_command(window: Window, directory: String, filename: String) {
 
 fn open_on_windows(location: &str, application: &str) {
     let result = location.replace("/", "\\");
+    let index = if std::fs::metadata(result.clone()).unwrap().is_file() {result.rfind("\\").unwrap()} else {result.len()};
 
     match application {
-        "" => open::that(result).unwrap(),
+        "" => {
+            match open::that(result.clone()) {
+                Ok(_) => (),
+                Err(_) => {
+                    open::that(result[0..index].to_string()).unwrap();
+                }
+            }
+        },
         "term" => {
             Command::new("cmd")
                 .arg("/K")
@@ -112,7 +135,6 @@ fn open_on_windows(location: &str, application: &str) {
                 .unwrap();
         },
         "explorer" => {
-            let index = if std::fs::metadata(result.clone()).unwrap().is_file() {result.rfind("\\").unwrap()} else {result.len()};
             open::that(result[0..index].to_string()).unwrap();
         },
         _ => open::that(result).unwrap(),
@@ -121,8 +143,17 @@ fn open_on_windows(location: &str, application: &str) {
 }
 
 fn open_on_mac(location: &str, application: &str) {
+    let index = if std::fs::metadata(location.clone()).unwrap().is_file() {location.rfind("/").unwrap()} else {location.len()};
+
     match application {
-        "" => open::that(location).unwrap(),
+        "" => {
+            match open::that(location.clone()) {
+                Ok(_) => (),
+                Err(_) => {
+                    open::that(location[0..index].to_string()).unwrap();
+                }
+            }
+        },
         "term" => {
             Command::new("open")
                 .arg("-a")
@@ -133,7 +164,6 @@ fn open_on_mac(location: &str, application: &str) {
         },
         "explorer" => {
             // check this later
-            let index = if std::fs::metadata(location.clone()).unwrap().is_file() {location.rfind("/").unwrap()} else {location.len()};
             open::that(location[0..index].to_string()).unwrap();
         }
         _ => open::that(location).unwrap(),
