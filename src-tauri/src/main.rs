@@ -97,35 +97,56 @@ fn get_properties_command(window: Window, directory: String, filename: String) {
     window.emit("properties", &properties).unwrap();
 }
 
-#[tauri::command]
-fn open_location(location: String, application: String) {
-    let result = if env::consts::OS == "windows" { location.replace("/", "\\") } else { location };
+fn open_on_windows(location: &str, application: &str) {
+    let result = location.replace("/", "\\");
 
-    if application == "" {
-        open::that(result).unwrap();
-        return
+    match application {
+        "" => open::that(result).unwrap(),
+        "term" => {
+            Command::new("cmd")
+                .arg("/K")
+                .arg("cd")
+                .arg("/d")
+                .arg(format!("{}", result))
+                .spawn()
+                .unwrap();
+        },
+        "explorer" => {
+            let index = if std::fs::metadata(result.clone()).unwrap().is_file() {result.rfind("\\").unwrap()} else {result.len()};
+            open::that(result[0..index].to_string()).unwrap();
+        },
+        _ => open::that(result).unwrap(),
     }
 
-    match open::with(result.to_owned(), application) {
-        Ok(_) => (),
-        Err(_) => {
-            if env::consts::OS == "windows" {
-                Command::new("cmd")
-                    .arg("/K")
-                    .arg("cd")
-                    .arg("/d")
-                    .arg(format!("{}", result))
-                    .spawn()
-                    .unwrap();
-            } else {
-                Command::new("open")
-                    .arg("-a")
-                    .arg("Terminal")
-                    .arg(format!("/{}", result))
-                    .spawn()
-                    .unwrap();
-            }
-        }, 
+}
+
+fn open_on_mac(location: &str, application: &str) {
+    match application {
+        "" => open::that(location).unwrap(),
+        "term" => {
+            Command::new("open")
+                .arg("-a")
+                .arg("Terminal")
+                .arg(format!("/{}", location))
+                .spawn()
+                .unwrap();
+        },
+        "explorer" => {
+            // check this later
+            let index = if std::fs::metadata(location.clone()).unwrap().is_file() {location.rfind("/").unwrap()} else {location.len()};
+            open::that(location[0..index].to_string()).unwrap();
+        }
+        _ => open::that(location).unwrap(),
+
+    }
+}
+
+#[tauri::command]
+fn open_location(location: String, application: String) {
+    if env::consts::OS == "windows" {
+        open_on_windows(&location, &application);
+    } else {
+        open_on_mac(&location, &application);
     }
 }
 

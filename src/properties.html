@@ -50,6 +50,12 @@
         button:hover {
             border-color: #396cd8;
         }
+
+        button.caution:hover {
+            border-color: #E0115F;
+        }
+
+        .st0{fill:#cfcfcf;}
     </style>
 </head>
 
@@ -66,9 +72,37 @@
         <p id="created"></p>
         <hr />
         
-        <button style="position: absolute; bottom: 0; left: 0;" onclick="openLocation('nvim')">neovim</button>
-        <button style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);" onclick="openLocation('')">open</button>
-        <button style="position: absolute; bottom: 0; right: 0;" onclick="openLocation('term')">terminal</button>
+        <button title="file explorer" style="position: absolute; bottom: 0; left: 0;" onclick="openLocation('explorer')">
+            <svg height="22px" width="22px" version="1.1" id="_x32_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="#000000">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                    <g>
+                        <path class="st0" d="M312.069,53.445c-71.26-71.26-187.194-71.26-258.454,0c-71.261,71.26-71.261,187.206,0,258.466 c71.26,71.26,187.194,71.26,258.454,0S383.329,124.705,312.069,53.445z M286.694,286.536 c-57.351,57.34-150.353,57.34-207.704-0.011s-57.351-150.353,0-207.693c57.351-57.351,150.342-57.351,207.693,0 S344.045,229.174,286.694,286.536z"></path>
+                        <path class="st0" d="M101.911,112.531c-29.357,37.725-31.801,89.631-7.321,129.702c1.877,3.087,5.902,4.048,8.978,2.182 c3.065-1.888,4.037-5.903,2.16-8.978c-21.666-35.456-19.506-81.538,6.469-114.876c2.226-2.837,1.713-6.938-1.135-9.154 C108.227,109.193,104.125,109.695,101.911,112.531z"></path>
+                        <path class="st0" d="M498.544,447.722l-132.637-129.2c-7.255-7.07-18.84-6.982-26.008,0.174l-21.033,21.033 c-7.156,7.156-7.234,18.742-0.153,25.986l129.19,132.636c14.346,17.324,35.542,18.35,51.917,1.964 C516.216,483.951,515.857,462.068,498.544,447.722z"></path>
+                    </g>
+                </g>
+            </svg>
+        </button>
+        <button title="delete" class="caution" style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);" onclick="alert('just checking')">
+            <svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M9.54405 4C8.25225 4 7.03997 4.62386 6.28912 5.67505L3.01681 10.2563C2.27174 11.2994 2.27174 12.7006 3.01681 13.7437L6.28912 18.325C7.03997 19.3761 8.25225 20 9.54405 20H18.0002C20.2093 20 22.0002 18.2091 22.0002 16V8C22.0002 5.79086 20.2093 4 18.0002 4H9.54405ZM10.2929 8.29289C10.6834 7.90237 11.3166 7.90237 11.7071 8.29289L14 10.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L15.4142 12L17.7071 14.2929C18.0976 14.6834 18.0976 15.3166 17.7071 15.7071C17.3166 16.0976 16.6834 16.0976 16.2929 15.7071L14 13.4142L11.7071 15.7071C11.3166 16.0976 10.6834 16.0976 10.2929 15.7071C9.90237 15.3166 9.90237 14.6834 10.2929 14.2929L12.5858 12L10.2929 9.70711C9.90237 9.31658 9.90237 8.68342 10.2929 8.29289Z" fill="#cfcfcf"></path>
+                </g>
+            </svg>
+        </button>
+        <button title="terminal" style="position: absolute; bottom: 0; right: 0;" onclick="openLocation('term')">
+            <svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M7.29291 14.2929C6.90238 14.6834 6.90238 15.3166 7.29291 15.7071C7.68343 16.0976 8.31659 16.0976 8.70712 15.7071L11.2071 13.2071C11.8738 12.5404 11.8738 11.4596 11.2071 10.7929L8.70712 8.29289C8.3166 7.90237 7.68343 7.90237 7.29291 8.29289C6.90238 8.68342 6.90238 9.31658 7.29291 9.70711L9.5858 12L7.29291 14.2929ZM13 14C12.4477 14 12 14.4477 12 15C12 15.5523 12.4477 16 13 16H16C16.5523 16 17 15.5523 17 15C17 14.4477 16.5523 14 16 14H13ZM22 7.93418C22 7.95604 22 7.97799 22 8.00001L22 16.0658C22.0001 16.9523 22.0001 17.7161 21.9179 18.3278C21.8297 18.9833 21.631 19.6117 21.1213 20.1213C20.6117 20.631 19.9833 20.8297 19.3278 20.9179C18.7161 21.0001 17.9523 21.0001 17.0658 21L6.9342 21C6.0477 21.0001 5.28388 21.0001 4.67222 20.9179C4.0167 20.8297 3.38835 20.631 2.87869 20.1213C2.36902 19.6117 2.17028 18.9833 2.08215 18.3278C1.99991 17.7161 1.99995 16.9523 2 16.0658L2 7.9342C1.99995 7.0477 1.99991 6.28388 2.08215 5.67221C2.17028 5.0167 2.36902 4.38835 2.87869 3.87868C3.38835 3.36902 4.0167 3.17028 4.67222 3.08215C5.28388 2.99991 6.04769 2.99995 6.93418 3L17 3.00001C17.022 3.00001 17.044 3 17.0658 3C17.9523 2.99995 18.7161 2.99991 19.3278 3.08215C19.9833 3.17028 20.6117 3.36902 21.1213 3.87869C21.631 4.38835 21.8297 5.0167 21.9179 5.67221C22.0001 6.28387 22.0001 7.04769 22 7.93418Z" fill="#cfcfcf"></path>
+                </g>
+            </svg>
+        </button>
     </div>
 
     <script>
@@ -103,10 +137,10 @@
         });
 
         function openLocation(application) {
-            //if (navigator.platform != "Win32" && (application == "nvim")) {
-            //    alert("not supported lols. soz");
-            //    return;
-            //}
+            if (navigator.platform != "Win32" && (application == "nvim")) {
+                alert("not supported lols. soz");
+                return;
+            }
 
             invoke("open_location", {location: directoryLocation, application});
         }

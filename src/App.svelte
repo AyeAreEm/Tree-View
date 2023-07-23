@@ -1,7 +1,9 @@
 <script>
     import { onMount } from "svelte";
-    import { invoke } from '@tauri-apps/api/tauri'
+    import { invoke } from '@tauri-apps/api/tauri';
+    import { open } from '@tauri-apps/api/dialog';
     import * as d3 from "d3";
+    import G from "./lib/G.svelte";
 
     let homeDirectory;
     let addDirectoryDialog;
@@ -31,7 +33,6 @@
         }
 
         paths = received;
-        console.log(root)
     }
 
     onMount(async () => {
@@ -63,16 +64,26 @@
         }
     }
 
-    const handleAddDirectory = () => {
+    const handleAddDirectory = async () => {
         let nickname = document.forms["add-directory"]["nickname"];
-        let directoryPath = document.forms["add-directory"]["directory-path"];
 
-        storedDirectories.push({"nickname": nickname.value, "directoryPath": directoryPath.value})
+        const selectedPath = await open({
+            multiple: false,
+            directory: true,
+            title: "choose a directory", 
+        });
+
+        if (!selectedPath) {
+            return;
+        }
+        
+        console.log(selectedPath);
+
+        storedDirectories.push({"nickname": nickname.value, "directoryPath": selectedPath});
         storedDirectories = storedDirectories;
 
         localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
         nickname.value = "";
-        directoryPath.value = "";
         addDirectoryDialog.close();
     }
 
@@ -130,8 +141,8 @@
         <p style="color: white;">provide an existing directory</p>
         <form on:submit|preventDefault={handleAddDirectory} name="add-directory">
             <input type="text" name="nickname" placeholder="directory nickname" required/><br><br>
-            <input type="text" name="directory-path" placeholder="absolute path directory" required/><br><br>
-            <input type="submit" value="Add"/>
+            <input type="submit" value="Add" />
+            <!-- <input type="text" name="directory-path" placeholder="absolute path directory" required/><br><br> -->
         </form>
     </dialog>
     <dialog bind:this={removeDirectoryDialog}>
@@ -145,9 +156,8 @@
     <svg width={width} height={height}  viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
         {#each root.descendants() as node}
             {@const short = shortenPath(node.id)}
-            <!-- {console.log(node)} -->
             {#if node.id.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
-                <g id={short} on:dblclick={async () => await handleContext(node.data, short)}>
+                <G id={short} on:sglclick={async () => await invoke("open_location", {location: node.data, application: ""})} on:dblclick={async () => await handleContext(node.data, short)}>
                     <title>{short}</title>
                     <svg id={node.id} class="node" x={node.x - (recWidth / 2)} y={node.y} version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width={recWidth} height={recHeight} fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -166,9 +176,9 @@
                         </g>
                     </svg>
                     <!-- <text class="label" x={node.x} y={node.y + 9} font-size="10px" fill="white">{node.id}</text> -->
-                </g>
+                </G>
             {:else}
-                <g id={short} on:dblclick={async () => await handleContext(node.data, short)}>
+                <G id={short} on:sglclick={async () => await invoke("open_location", {location: node.data, application: ""})} on:dblclick={async () => await handleContext(node.data, short)}>
                     <title>{short}</title>
                     <svg id={node.id} class="node" x={node.x - (recHeight / 2)} y={node.y - 10} version="1.0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width={recHeight} height={recWidth} viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve" fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -189,7 +199,7 @@
                             </g>
                         </g>
                     </svg>
-                </g>
+                </G>
             {/if}
         {/each}
         {#each root.links() as link}

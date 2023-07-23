@@ -18,7 +18,7 @@ be wary of Directory Man!
 
 ## Todos
 - ✅ Don't display big folders such as node_modules and .git
-- Add settings section with customisation (i.e. change background, specific what folder's to ignore, etc)
+- Add settings section with customisation (i.e. change background, specific folder's to ignore, etc)
 - Add website / cloud verison so that files are accessible everywhere [note: this will preferably not use an account system but something still as secure hopefully]
 - Don't display dot files such as .DS_Store and .gitignore? (maybe)
 
