@@ -66,6 +66,14 @@
 
     const handleAddDirectory = async () => {
         let nickname = document.forms["add-directory"]["nickname"];
+        // check if nickname already exists, if so, return
+        // also better to do it before opening the dialog, just makes more sense
+        for (let i = 0; i < storedDirectories.length; i++) {
+            if (storedDirectories[i].nickname.trim() === nickname.value.trim()) {
+                alert("nickname already exists");
+                return;
+            }
+        }
 
         const selectedPath = await open({
             multiple: false,
@@ -77,8 +85,6 @@
             return;
         }
         
-        console.log(selectedPath);
-
         storedDirectories.push({"nickname": nickname.value, "directoryPath": selectedPath});
         storedDirectories = storedDirectories;
 

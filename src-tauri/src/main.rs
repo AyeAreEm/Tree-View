@@ -68,21 +68,15 @@ fn load_directory(directory: &str) -> Vec<String> {
                 .into_iter()
                 .filter_map(|f| f.ok())
                 .filter(|f| !f.path().display().to_string().contains("node_modules") && !f.path().display().to_string().contains(".git") && !f.path().display().to_string().contains("target"))
-                .map(|f| f.path().display().to_string().to_owned())
+                .map(|f| f.path().display().to_string())
                 .collect();
 
-    let mut content_string: Vec<String> = Vec::new();
-
-    for i in content {
-        content_string.push(i);
-    }
-
-    if content_string.len() > 50 {
+    if content.len() > 50 {
         let content_msg: Vec<String> = vec!["this directory too big lol soz.".to_string()];
         return content_msg;
     }
 
-    return content_string
+    return content
 }
 
 #[tauri::command]
