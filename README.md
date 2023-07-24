@@ -3,7 +3,7 @@ Currently in pre-alpha
 
 be wary of Directory Man!
 <p align="center">
-    <img src="sample.png" width=400/>
+    <img src="sample.png" width=500/>
 </p>
 
 ## Features
