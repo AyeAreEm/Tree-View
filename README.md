@@ -2,7 +2,7 @@
 Currently in pre-alpha
 
 be wary of Directory Man!
-![sample image](sample.png | width=400)
+![sample image](sample.png | width=400px)
 
 ## Features
 - ✅ Add new `master` directories and switch between them
