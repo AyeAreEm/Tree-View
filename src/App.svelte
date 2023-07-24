@@ -142,7 +142,6 @@
         <form on:submit|preventDefault={handleAddDirectory} name="add-directory">
             <input type="text" name="nickname" placeholder="directory nickname" required/><br><br>
             <input type="submit" value="Add" />
-            <!-- <input type="text" name="directory-path" placeholder="absolute path directory" required/><br><br> -->
         </form>
     </dialog>
     <dialog bind:this={removeDirectoryDialog}>
@@ -175,7 +174,6 @@
                             <path style="fill:#D7DEED;" d="M441.379,203.034h-97.103c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h97.103c4.875,0,8.828,3.953,8.828,8.828l0,0C450.207,199.082,446.254,203.034,441.379,203.034z"></path>
                         </g>
                     </svg>
-                    <!-- <text class="label" x={node.x} y={node.y + 9} font-size="10px" fill="white">{node.id}</text> -->
                 </G>
             {:else}
                 <G id={short} on:sglclick={async () => await invoke("open_location", {location: node.data, application: ""})} on:dblclick={async () => await handleContext(node.data, short)}>

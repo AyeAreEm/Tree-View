@@ -130,7 +130,7 @@ fn open_on_windows(location: &str, application: &str) {
                 .arg("/K")
                 .arg("cd")
                 .arg("/d")
-                .arg(format!("{}", result))
+                .arg(format!("{}", &result[0..index]))
                 .spawn()
                 .unwrap();
         },
@@ -158,12 +158,11 @@ fn open_on_mac(location: &str, application: &str) {
             Command::new("open")
                 .arg("-a")
                 .arg("Terminal")
-                .arg(format!("/{}", location))
+                .arg(format!("/{}", &location[0..index]))
                 .spawn()
                 .unwrap();
         },
         "explorer" => {
-            // check this later
             open::that(location[0..index].to_string()).unwrap();
         }
         _ => open::that(location).unwrap(),
