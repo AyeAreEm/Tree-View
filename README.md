@@ -1,9 +1,8 @@
 # Tree View
-For Tree View to work, create a home directory (any name) where you want to house your files and folders.
-It is currently in pre-alpha stages.
+Currently in pre-alpha
 
 be wary of Directory Man!
-![sample image](sample.png)
+![sample image](sample.png | width=400)
 
 ## Features
 - ✅ Add new `master` directories and switch between them
