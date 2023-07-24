@@ -114,6 +114,7 @@
     }
 
     $: root = d3.stratify().path((d) => d)(paths);
+   // @ts-ignore
     $: treeLayout = d3.tree().size([width, height - 40])(root);
 </script>
 
@@ -152,6 +153,7 @@
         </form>
     </dialog>
 
+    <!-- refactor this, remove repeating code, maybe put some of it inside the G.svelte file -->
     <svg width={width} height={height}  viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
         {#each root.descendants() as node}
             {@const short = shortenPath(node.id)}

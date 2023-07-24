@@ -1,5 +1,6 @@
 # Tree View
 For Tree View to work, create a home directory (any name) where you want to house your files and folders.
+It is currently in pre-alpha stages.
 
 be wary of Directory Man!
 ![sample image](sample.png)
@@ -9,18 +10,48 @@ be wary of Directory Man!
 - ✅ Search for a file in the current directory
 - ✅ Show files and folders in a vertical tree diagram
 - ✅ Get properties of a file 
+- ✅ Open a file in its respective app 
+- ✅ Option to open directory in Windows File Explorer
+- ✅ Option to open directory in terminal
 - Add a new file or folder
 - Remove a file or folder
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
-- ✅ Open a file in its respective app 
-- ✅ Option to open directory in Windows File Explorer
-- 👷‍♂️ Option to open directory in terminal? mac ✅ windows ✅ [note: os's don't like languages interacting with the terminal outside of it's current "instance" so creating a terminal is g, programmatically changing the directory of the spawned terminal is not g]
+- [Settings Section](#settings-section) 
 
 ## Todos
 - ✅ Don't display big folders such as node_modules and .git
 - Add settings section with customisation (i.e. change background, specific folder's to ignore, etc)
 - Add website / cloud verison so that files are accessible everywhere [note: this will preferably not use an account system but something still as secure hopefully]
 - Don't display dot files such as .DS_Store and .gitignore? (maybe)
+
+---
+
+## Installation
+As of this moment, the only way to run this for yourself is by cloning the repo run these commands in the directory:
+
+`npm i`
+`npm run tauri dev`
+
+This project has not been tested in its build version and is not recommended until Tree View is in 1.0
+
+## How to use
+- Add your master directory with the + button at the top left.
+- Remove (not delete) a master directory with the - button
+- Load it by clicking on the selection options - top left
+- Hover over files / folders to see their name
+- Search for files and folders with the name of them [note: all entities that has the search term will appear]
+- Click on the file / folder once to open it in its respective app
+- Double click to get more info - size, name, location, options to open in the system file explorer and in the terminal, etc.
+
+### Settings Section
+- Background options
+- Icon options? (might be to much of a hassle)
+- [Upgrade package](#upgrade-package) (subscription / it'd be greatly appreciated if you could help me get a cup of coffee 🥺)
+
+#### Upgrade package includes: 
+- Cloud system (store files and such - allows users to store and port files to other devices)
+- More customisation (specific folder's to ignore, etc.)
+- Get to try upcoming features?
 
 ---
 
@@ -88,17 +119,17 @@ $: treeLayout = d3.tree().size([width, height - 40])(root);
 ```
 ### Use of Open
 Perfect and simple. This crate lets you open a file in the os's default app (whatever you set that default to be) or in a specific app.
-I could've used Rust's built in Command library but I noticed when developing, if you spawn a new cmd, it spawns it in any currently running cmds.
-Since I have one running to hot reload this project, it would be a hassle if it kept spawning it in the one I was using.
 
 ```rust
 open::that(location).unwrap();
 ```
 That's it. literally that's it. Chef's kiss.
+Although, I might need to use it more since we are mostly using rust's built in Command library since we need to run commands with certain apps when opening them (i.e. terminal and file explorer - the main ones 😅)
 
 ### Use of Rand
 I don't think there's a lot to say about this one. It's just a random number generator.
 Rust doesn't have a rng included in its stdlib.
+The reason for this is each window needs a unique label when it's created, so random number yk.
 
 ```rust
 let rng = rand::thread_rng();
