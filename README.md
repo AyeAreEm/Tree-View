@@ -99,7 +99,7 @@ let content: Vec<_> = WalkDir::new(directory)
 That's it. Done. Amazing. Using this, I had to convert the path buffer to a string which was weirdly hard but I got there in the end. I needed it to be a regular string and not a `.display()` or `.into_os_string().into_string()` mainly because I didn't want to deal with the hassle and because I needed to spend strings to the frontend.
 
 ### Use of D3
-I wanna throw a washing machine at the nearest wall
+I wanna throw a washing machine at the nearest wall.
 The learning curve for D3 is insane. The docs are _decently_ documented but it feels like they assume you know what each thing returns or what methods are chainable.
 To be fair, this is the first time I'm using D3, and it's gonna be the major part of this project so unless I can find a smaller library or write code that can draw diagrams from scratch by myself, I should keep quite, suck it up, and just git gud
 I will say, after spending a quater of a day, it gets easier to notice similarities and a sort of "system" if that makes sense.
@@ -125,7 +125,7 @@ Perfect and simple. This crate lets you open a file in the os's default app (wha
 open::that(location).unwrap();
 ```
 That's it. literally that's it. Chef's kiss.
-Although, I might need to use it more since we are mostly using rust's built in Command library since we need to run commands with certain apps when opening them (i.e. terminal and file explorer - the main ones 😅)
+Although, I might need to use it more - we are mostly using rust's built in Command library because we need to run commands with certain apps when opening them (i.e. terminal and file explorer - the main ones 😅)
 
 ### Use of Rand
 I don't think there's a lot to say about this one. It's just a random number generator.
