@@ -206,8 +206,6 @@
     </svg>
 </main>
 
-<svelte:window on:contextmenu={handleContext}/>
-
 <style>
     .node {
         cursor: pointer;
