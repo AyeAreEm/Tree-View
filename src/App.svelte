@@ -1,6 +1,7 @@
 <script>
     import { onMount } from "svelte";
     import { invoke } from '@tauri-apps/api/tauri';
+    import { listen } from '@tauri-apps/api/event'
     import { open } from '@tauri-apps/api/dialog';
     import * as d3 from "d3";
     import G from "./lib/G.svelte";
@@ -66,8 +67,7 @@
 
     const handleAddDirectory = async () => {
         let nickname = document.forms["add-directory"]["nickname"];
-        // check if nickname already exists, if so, return
-        // also better to do it before opening the dialog, just makes more sense
+        
         for (let i = 0; i < storedDirectories.length; i++) {
             if (storedDirectories[i].nickname.trim() === nickname.value.trim()) {
                 alert("nickname already exists");
@@ -119,6 +119,17 @@
         }, 300);
     }
 
+    listen('refresh-remove', async (event) => {
+        if (event.payload.isDir) {
+            await handleLoadDirectory(homeDirectory);
+            return;
+        }
+
+        paths = paths.filter(obj => {
+            return obj !== event.payload.removed;
+        });
+    });
+
     $: root = d3.stratify().path((d) => d)(paths);
    // @ts-ignore
     $: treeLayout = d3.tree().size([width, height - 40])(root);
@@ -165,8 +176,7 @@
             {@const short = shortenPath(node.id)}
             {#if node.id.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
                 <G id={short} on:sglclick={async () => await invoke("open_location", {location: node.data, application: ""})} on:dblclick={async () => await handleContext(node.data, short)}>
-                    <title>{short}</title>
-                    <svg id={node.id} class="node" x={node.x - (recWidth / 2)} y={node.y} version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width={recWidth} height={recHeight} fill="#000000">
+                    <svg id={node.id} class="node" x={node.x - (recWidth / 2)} y={node.y} xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width={recWidth} height={recHeight} fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                         <g id="SVGRepo_iconCarrier">
                             <path id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
@@ -185,8 +195,7 @@
                 </G>
             {:else}
                 <G id={short} on:sglclick={async () => await invoke("open_location", {location: node.data, application: ""})} on:dblclick={async () => await handleContext(node.data, short)}>
-                    <title>{short}</title>
-                    <svg id={node.id} class="node" x={node.x - (recHeight / 2)} y={node.y - 10} version="1.0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width={recHeight} height={recWidth} viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve" fill="#000000">
+                    <svg id={node.id} class="node" x={node.x - (recHeight / 2)} y={node.y - 10} xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width={recHeight} height={recWidth} viewBox="0 0 64 64" xml:space="preserve" fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                         <g id="SVGRepo_iconCarrier">
                             <g>

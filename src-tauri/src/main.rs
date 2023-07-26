@@ -67,6 +67,7 @@ fn load_directory(directory: &str) -> Vec<String> {
                 .follow_links(true)
                 .into_iter()
                 .filter_map(|f| f.ok())
+                // refactor this, load filters from file (csv) maybe?
                 .filter(|f| !f.path().display().to_string().contains("node_modules") && !f.path().display().to_string().contains(".git") && !f.path().display().to_string().contains("target"))
                 .map(|f| f.path().display().to_string())
                 .collect();
@@ -94,8 +95,7 @@ async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
         tauri::WindowUrl::App("../../src/properties.html".into())
     ).build().unwrap();
 
-    new_window.set_size(Size::Logical(tauri::LogicalSize { width: 350.0, height: 450.0 })).unwrap();
-    new_window.set_resizable(false).unwrap();
+    new_window.set_size(Size::Logical(tauri::LogicalSize { width: 350.0, height: 460.0 })).unwrap();
     new_window.set_minimizable(false).unwrap();
     new_window.set_title(format!("{filename} | Properties").as_str()).unwrap();
 }
@@ -173,9 +173,25 @@ fn open_location(location: String, application: String) {
     }
 }
 
+#[tauri::command]
+fn remove_location(location: String, is_dir: bool) -> &'static str {
+    if is_dir {
+        match std::fs::remove_dir_all(location) {
+            Ok(_) => "👍",
+            Err(_) => "error occured when deleting. ensure no program is currently using it."
+        }
+    } else {
+        match std::fs::remove_file(location) {
+            Ok(_) => "👍",
+            Err(_) => "error occured when deleting. ensure no program is currently using it."
+        }
+    }
+
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, open_location])
+        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, open_location, remove_location])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -55,6 +55,13 @@
             border-color: #E0115F;
         }
 
+        dialog {
+            padding: 0.5rem;
+            background: #252525;
+            border-radius: 0.25rem; 
+            z-index: 10;
+        }
+
         .st0{fill:#cfcfcf;}
     </style>
 </head>
@@ -85,7 +92,7 @@
                 </g>
             </svg>
         </button>
-        <button title="delete" class="caution" style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);" onclick="alert('just checking')">
+        <button title="delete" class="caution" style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);" onclick="document.getElementById('removeDialog').showModal()">
             <svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                 <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -103,17 +110,25 @@
                 </g>
             </svg>
         </button>
+
+        <dialog id="removeDialog">
+            <p style="color: white; text-align: center;;">delete this?</p>
+            <button onclick="document.getElementById('removeDialog').close()">no</button>
+            <button class="caution" onclick="removeLocation()">yes</button>
+        </dialog>
     </div>
 
     <script>
         const {invoke} = window.__TAURI__.tauri;
-        const listen = window.__TAURI__.event.listen;
+        const {emit, listen} = window.__TAURI__.event;
 
         let directoryLocation = "";
+        let isDir;
 
         listen('properties', (e) => {
             let size;
             directoryLocation = e.payload.location;
+            isDir = e.payload.is_directory;
 
             if (e.payload.length > 1024) {
                 size = `${(e.payload.length / 1024).toFixed(2)} KB`;
@@ -143,6 +158,21 @@
             }
 
             invoke("open_location", {location: directoryLocation, application});
+        }
+
+        function removeLocation() {
+            invoke("remove_location", {location: directoryLocation, isDir})
+                .then(res => {
+                    if (res == "error occured when deleting. ensure no program is currently using it.") {
+                        alert(res);
+                        return;
+                    }
+
+                    emit("refresh-remove", {
+                        removed: directoryLocation,
+                        isDir
+                    });
+                });
         }
     </script>
 </body>

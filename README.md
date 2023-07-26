@@ -14,13 +14,14 @@ be wary of Directory Man!
 - ✅ Open a file in its respective app 
 - ✅ Option to open directory in Windows File Explorer
 - ✅ Option to open directory in terminal
+- ✅ Remove a file or folder
 - Add a new file or folder
-- Remove a file or folder
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - [Settings Section](#settings-section) 
 
 ## Todos
 - ✅ Don't display big folders such as node_modules and .git
+- Add refresh button
 - Add settings section with customisation (i.e. change background, specific folder's to ignore, etc)
 - Add website / cloud verison so that files are accessible everywhere [note: this will preferably not use an account system but something still as secure hopefully]
 - Don't display dot files such as .DS_Store and .gitignore? (maybe)
@@ -36,13 +37,21 @@ As of this moment, the only way to run this for yourself is by cloning the repo 
 This project has not been tested in its build version and is not recommended until Tree View is in 1.0
 
 ## How to use
+
+### Master Directory
 - Add your master directory with the + button at the top left.
 - Remove (not delete) a master directory with the - button
 - Load it by clicking on the selection options - top left
-- Hover over files / folders to see their name
-- Search for files and folders with the name of them [note: all entities that has the search term will appear]
+
+### File Manipulation
 - Click on the file / folder once to open it in its respective app
-- Double click to get more info - size, name, location, options to open in the system file explorer and in the terminal, etc.
+- Double click to get its properties- size, name, location, options to open in the system file explorer and in the terminal, etc.
+- Delete a file / folder by clicking on the delete button icon in the properties window. it will prompt you to confirm (note: unlike removing a master directory, this does <b>delete</b> the item.)
+
+### Tips / Hints
+- Hover over files / folders to see their name
+- Search for files and folders with the name of them [note: all entities that has the search term in its path will be displayed]
+- There is a 50 item cap to prevent crammed UI, however this can be easily changed in the `main.rs` file under `load_directory` function. This is not recommended though.
 
 ### Settings Section
 - Background options
