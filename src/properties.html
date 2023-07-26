@@ -126,19 +126,19 @@
         let isDir;
 
         listen('properties', (e) => {
+            const units = ["bytes", "KB", "MB", "GB", "TB"]
+
             let size;
             directoryLocation = e.payload.location;
             isDir = e.payload.is_directory;
 
-            if (e.payload.length > 1024) {
-                size = `${(e.payload.length / 1024).toFixed(2)} KB`;
-            } else if (e.payload.length > 1024**2) {
-                size = `${(e.payload.length / 1024**2).toFixed(2)} MB`;
-            } else if (e.payload.length > 1024**3) {
-                size = `${(e.payload.length / 1024**3).toFixed(2)} GB`;
-            } else {
-                size = `${e.payload.length} bytes`;
+            let i = 0, n = parseInt(e.payload.length, 10) || 0;
+
+            while(n >= 1024 && ++i) {
+                n = n / 1024;
             }
+
+            size = `${n.toFixed(n < 10 && i > 0 ? 2 : 0)} ${units[i]}`;
 
             let d = new Date(e.payload.created * 1000);
             document.getElementById("created").textContent = `created: ${d}`;
@@ -173,6 +173,8 @@
                         isDir
                     });
                 });
+            
+            document.getElementById('removeDialog').close();
         }
     </script>
 </body>

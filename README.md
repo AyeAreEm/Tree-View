@@ -1,5 +1,6 @@
 # Tree View
 Currently in pre-alpha
+Testing on Windows 10 and macOs Ventura - no guarantees for Linux
 
 be wary of Directory Man!
 <p align="center">
@@ -12,7 +13,7 @@ be wary of Directory Man!
 - ✅ Show files and folders in a vertical tree diagram
 - ✅ Get properties of a file 
 - ✅ Open a file in its respective app 
-- ✅ Option to open directory in Windows File Explorer
+- ✅ Option to open directory in os's file explorer 
 - ✅ Option to open directory in terminal
 - ✅ Remove a file or folder
 - Add a new file or folder
@@ -21,7 +22,7 @@ be wary of Directory Man!
 
 ## Todos
 - ✅ Don't display big folders such as node_modules and .git
-- Add refresh button
+- ✅ Add refresh button
 - Add settings section with customisation (i.e. change background, specific folder's to ignore, etc)
 - Add website / cloud verison so that files are accessible everywhere [note: this will preferably not use an account system but something still as secure hopefully]
 - Don't display dot files such as .DS_Store and .gitignore? (maybe)

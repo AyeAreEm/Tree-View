@@ -87,14 +87,17 @@
         
         storedDirectories.push({"nickname": nickname.value, "directoryPath": selectedPath});
         storedDirectories = storedDirectories;
-
         localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
+
+        homeDirectory = storedDirectories[storedDirectories.length - 1].directoryPath;
+        await handleLoadDirectory(homeDirectory);
+
         nickname.value = "";
         addDirectoryDialog.close();
     }
 
     const handleRemoveDirectory = () => {
-        if (!storedDirectories.length) {
+        if (storedDirectories.length === 0) {
             return;
         }
 
@@ -105,6 +108,15 @@
         });
 
         localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
+
+        if (storedDirectories.length !== 0) {
+            homeDirectory = storedDirectories[storedDirectories.length - 1].directoryPath
+            handleLoadDirectory(homeDirectory);
+        } else {
+            homeDirectory = "";
+            paths = ["welcome, create a directory^"];
+        }
+
         nickname.value = "";
         removeDirectoryDialog.close();
     }
@@ -153,20 +165,32 @@
         <li style="float: right;">
             <input type="text" id="search" spellcheck="false" placeholder="search" bind:value={searchValue} on:keydown={handleSearchBar}/>
         </li>
+        <li style="float: right;">
+            <button on:click={_ => handleLoadDirectory(homeDirectory)} title="refresh tree">
+                <svg width="15px" height="15px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                        <path d="M21 3V8M21 8H16M21 8L18 5.29168C16.4077 3.86656 14.3051 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21C16.2832 21 19.8675 18.008 20.777 14" stroke="#cfcfcf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </g>
+                </svg>
+            </button>
+        </li>
     </ul>
 
     <dialog bind:this={addDirectoryDialog}>
         <p style="color: white;">provide an existing directory</p>
         <form on:submit|preventDefault={handleAddDirectory} name="add-directory">
             <input type="text" name="nickname" placeholder="directory nickname" required/><br><br>
-            <input type="submit" value="Add" />
+            <button on:click={_ => addDirectoryDialog.close()}>cancel</button>
+            <input type="submit" value="add" />
         </form>
     </dialog>
     <dialog bind:this={removeDirectoryDialog}>
         <p style="color: white;">removing won't delete from the device</p>
         <form on:submit|preventDefault={handleRemoveDirectory} name="remove-directory">
             <input type="text" name="nickname" placeholder="directory nickname" required/><br><br>
-            <input class="caution" type="submit" value="Remove"/>
+            <button on:click={_ => removeDirectoryDialog.close()}>cancel</button>
+            <input class="caution" type="submit" value="remove"/>
         </form>
     </dialog>
 
