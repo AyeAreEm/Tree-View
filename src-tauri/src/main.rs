@@ -6,6 +6,7 @@
 
 use std::env;
 use std::process::Command;
+use std::fs;
 use tauri::Size;
 use tauri::Window;
 use walkdir::WalkDir;
@@ -37,7 +38,7 @@ fn get_extension(path: &str, is_file: bool) -> String {
 }
 
 fn get_properties(directory: &str, filename: &str) -> Properties {
-    let metadata_result = std::fs::metadata(directory);
+    let metadata_result = fs::metadata(directory);
     let metadata = match metadata_result {
         Ok(metadata) => metadata,
         Err(_) => return Properties { filename: "problem with getting data soz.".to_string(), location: "".to_string(), extension: "".to_string(), length: 0, is_directory: false, created: 0 },
@@ -108,7 +109,7 @@ fn get_properties_command(window: Window, directory: String, filename: String) {
 
 fn open_on_windows(location: &str, application: &str) {
     let result = location.replace("/", "\\");
-    let index = if std::fs::metadata(result.clone()).unwrap().is_file() {result.rfind("\\").unwrap()} else {result.len()};
+    let index = if fs::metadata(result.clone()).unwrap().is_file() {result.rfind("\\").unwrap()} else {result.len()};
 
     match application {
         "" => {
@@ -137,7 +138,7 @@ fn open_on_windows(location: &str, application: &str) {
 }
 
 fn open_on_mac(location: &str, application: &str) {
-    let index = if std::fs::metadata(location.clone()).unwrap().is_file() {location.rfind("/").unwrap()} else {location.len()};
+    let index = if fs::metadata(location.clone()).unwrap().is_file() {location.rfind("/").unwrap()} else {location.len()};
 
     match application {
         "" => {
@@ -174,14 +175,35 @@ fn open_location(location: String, application: String) {
 }
 
 #[tauri::command]
+fn create_location(location: String) -> i8 {
+    if location.ends_with("/") {
+        match fs::create_dir(location) {
+            Ok(_) => return 0,
+            Err(_) => {
+                println!("couldn't create entity");
+                return 1
+            }, 
+        }
+    }
+
+    match fs::File::create(location) {
+        Ok(_) => return 0,
+        Err(_) => {
+            println!("couldn't create entity");
+            return 1
+        },
+    }
+}
+
+#[tauri::command]
 fn remove_location(location: String, is_dir: bool) -> &'static str {
     if is_dir {
-        match std::fs::remove_dir_all(location) {
+        match fs::remove_dir_all(location) {
             Ok(_) => "👍",
             Err(_) => "error occured when deleting. ensure no program is currently using it."
         }
     } else {
-        match std::fs::remove_file(location) {
+        match fs::remove_file(location) {
             Ok(_) => "👍",
             Err(_) => "error occured when deleting. ensure no program is currently using it."
         }
@@ -191,7 +213,7 @@ fn remove_location(location: String, is_dir: bool) -> &'static str {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, open_location, remove_location])
+        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, open_location, create_location, remove_location])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

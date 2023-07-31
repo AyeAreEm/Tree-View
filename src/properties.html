@@ -33,7 +33,7 @@
 
         }
 
-        button {
+        button, input {
             border-radius: 8px;
             border: 1px solid transparent;
             padding: 0.6em 1.2em;
@@ -44,14 +44,17 @@
             transition: border-color 0.25s;
             box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
             outline: none;
+        }
+
+        button, input[type=submit] {
             cursor: pointer;
         }
 
-        button:hover {
+        button:hover, input[type=submit]:hover {
             border-color: #396cd8;
         }
 
-        button.caution:hover {
+        button.caution:hover, input[type=submit].caution:hover {
             border-color: #E0115F;
         }
 
@@ -79,6 +82,7 @@
         <p id="created"></p>
         <hr />
         
+        <div title="create file or folder" style="position: absolute; top: 0; right: 0; font-size: 12px;" id="add"></div>
         <button title="file explorer" style="position: absolute; bottom: 0; left: 0;" onclick="openLocation('explorer')">
             <svg height="22px" width="22px" version="1.1" id="_x32_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" fill="#000000">
                 <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
@@ -111,8 +115,17 @@
             </svg>
         </button>
 
+        <dialog id="createDialog">
+            <form id="createForm" style="text-align: center;" action="">
+                <p style="color: white; font-size: 14px;">create file or folder (end with / for folder)</p>
+                <input spellcheck="false" type="text" id="createLocation" placeholder="entity name" required/><br><br>
+                <button type="button" onclick="document.getElementById('createDialog').close()">cancel</button>
+                <input type="submit" value="create" />
+            </form>
+        </dialog>
+
         <dialog id="removeDialog">
-            <p style="color: white; text-align: center;;">delete this?</p>
+            <p style="color: white; text-align: center;">delete this?</p>
             <button onclick="document.getElementById('removeDialog').close()">no</button>
             <button class="caution" onclick="removeLocation()">yes</button>
         </dialog>
@@ -149,16 +162,47 @@
             document.getElementById("location").textContent = `location: ${directoryLocation}`;
             document.getElementById("location").onclick = navigator.clipboard.writeText(`'${directoryLocation}'`);
 
+            if (isDir) {
+                let createEntity = document.getElementById("add");
+                
+                const button = document.createElement("button");
+                button.textContent = "+";
+                button.onclick = () => document.getElementById('createDialog').showModal();
+                createEntity.append(button);
+            }
         });
 
         function openLocation(application) {
-            if (navigator.platform != "Win32" && (application == "nvim")) {
-                alert("not supported lols. soz");
-                return;
-            }
-
             invoke("open_location", {location: directoryLocation, application});
         }
+
+        document.getElementById("createForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            let inp = document.getElementById("createLocation");
+            let location = "";
+
+            if (navigator.platform != "Win32") {
+                location = `${directoryLocation}/${inp.value}`;
+            } else {
+                location = `${directoryLocation}\\${inp.value}`;
+            }
+
+            invoke("create_location", {location})
+                .then(res => {
+                    location = location.endsWith("/") ? location.substring(0, location.length - 1) : location;
+
+                    if (res == 1) {
+                        alert("problem with creating the entity");
+                        return;
+                    }
+
+                    inp.value = "";
+                    document.getElementById('createDialog').close();
+                    emit("refresh-add", {
+                        added: location
+                    });
+                })
+        })
 
         function removeLocation() {
             invoke("remove_location", {location: directoryLocation, isDir})

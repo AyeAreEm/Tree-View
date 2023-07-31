@@ -142,6 +142,10 @@
         });
     });
 
+    listen('refresh-add', (event) => {
+        paths = paths.concat([event.payload.added]);
+    });
+
     $: root = d3.stratify().path((d) => d)(paths);
    // @ts-ignore
     $: treeLayout = d3.tree().size([width, height - 40])(root);
@@ -180,16 +184,16 @@
     <dialog bind:this={addDirectoryDialog}>
         <p style="color: white;">provide an existing directory</p>
         <form on:submit|preventDefault={handleAddDirectory} name="add-directory">
-            <input type="text" name="nickname" placeholder="directory nickname" required/><br><br>
-            <button on:click={_ => addDirectoryDialog.close()}>cancel</button>
+            <input spellcheck="false" type="text" name="nickname" placeholder="directory nickname" required/><br><br>
+            <button type="button" on:click={_ => addDirectoryDialog.close()}>cancel</button>
             <input type="submit" value="add" />
         </form>
     </dialog>
     <dialog bind:this={removeDirectoryDialog}>
         <p style="color: white;">removing won't delete from the device</p>
         <form on:submit|preventDefault={handleRemoveDirectory} name="remove-directory">
-            <input type="text" name="nickname" placeholder="directory nickname" required/><br><br>
-            <button on:click={_ => removeDirectoryDialog.close()}>cancel</button>
+            <input spellcheck="false" type="text" name="nickname" placeholder="directory nickname" required/><br><br>
+            <button type="button" on:click={_ => removeDirectoryDialog.close()}>cancel</button>
             <input class="caution" type="submit" value="remove"/>
         </form>
     </dialog>

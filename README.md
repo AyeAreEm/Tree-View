@@ -16,7 +16,8 @@ be wary of Directory Man!
 - ✅ Option to open directory in os's file explorer 
 - ✅ Option to open directory in terminal
 - ✅ Remove a file or folder
-- Add a new file or folder
+- ✅ Add a new file or folder
+- Ability to pin master directories
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - [Settings Section](#settings-section) 
 
