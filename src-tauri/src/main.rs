@@ -34,7 +34,6 @@ fn get_extension(path: &str, is_file: bool) -> String {
     }
 
     return "folder".to_string();
-
 }
 
 fn get_properties(directory: &str, filename: &str) -> Properties {
@@ -196,16 +195,16 @@ fn create_location(location: String) -> i8 {
 }
 
 #[tauri::command]
-fn remove_location(location: String, is_dir: bool) -> &'static str {
+fn remove_location(location: String, is_dir: bool) -> i8 {
     if is_dir {
         match fs::remove_dir_all(location) {
-            Ok(_) => "👍",
-            Err(_) => "error occured when deleting. ensure no program is currently using it."
+            Ok(_) => 0,
+            Err(_) => 1,
         }
     } else {
         match fs::remove_file(location) {
-            Ok(_) => "👍",
-            Err(_) => "error occured when deleting. ensure no program is currently using it."
+            Ok(_) => 0,
+            Err(_) => 1,
         }
     }
 

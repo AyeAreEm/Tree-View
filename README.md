@@ -24,8 +24,7 @@ be wary of Directory Man!
 ## Todos
 - ✅ Don't display big folders such as node_modules and .git
 - ✅ Add refresh button
-- Add settings section with customisation (i.e. change background, specific folder's to ignore, etc)
-- Add website / cloud verison so that files are accessible everywhere [note: this will preferably not use an account system but something still as secure hopefully]
+- 👷‍♂️ Add settings section with customisation (i.e. change background, specific folder's to ignore, etc)
 - Don't display dot files such as .DS_Store and .gitignore? (maybe)
 
 ---
@@ -54,16 +53,11 @@ This project has not been tested in its build version and is not recommended unt
 - Hover over files / folders to see their name
 - Search for files and folders with the name of them [note: all entities that has the search term in its path will be displayed]
 - There is a 50 item cap to prevent crammed UI, however this can be easily changed in the `main.rs` file under `load_directory` function. This is not recommended though.
+- Shared folders can be set as master directories for company use.
 
 ### Settings Section
 - Background options
 - Icon options? (might be to much of a hassle)
-- [Upgrade package](#upgrade-package) (subscription / it'd be greatly appreciated if you could help me get a cup of coffee 🥺)
-
-#### Upgrade package includes: 
-- Cloud system (store files and such - allows users to store and port files to other devices)
-- More customisation (specific folder's to ignore, etc.)
-- Get to try upcoming features?
 
 ---
 
