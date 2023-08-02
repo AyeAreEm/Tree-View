@@ -4,12 +4,12 @@ Testing on Windows 10 and macOs Ventura - no guarantees for Linux
 
 be wary of Directory Man!
 <p align="center">
-    <img src="directory-man.png" width=500/>
+    <img src="./examples/directory-man.png" width=500/>
 </p>
 
 updated ui:
 <p align="center">
-    <img src="sample.png" width=500/>
+    <img src="./examples/default.png" width=500/>
 </p>
 
 ## Features
@@ -32,7 +32,8 @@ updated ui:
 ---
 
 ## Installation
-As of this moment, the only way to run this for yourself is by cloning the repo run these commands in the directory:
+As of this moment, the only way to run this for yourself is by cloning the repo
+run these commands in the directory:
 
 `npm i`
 
@@ -43,7 +44,7 @@ This project has not been tested in its build version and is not recommended unt
 ## How to use
 
 ### Master Directory
-- Add your master directory with the + button at the top left.
+- Add your master directory with the + button at the top left
 - Remove (not delete) a master directory with the - button
 - Load it by clicking on the selection options - top left
 
@@ -56,14 +57,16 @@ This project has not been tested in its build version and is not recommended unt
 - Hover over files / folders to see their name
 - Search for files and folders with the name of them [note: all entities that has the search term in its path will be displayed]
 - There is a render cap of 50 items to prevent crammed UI, this can be changed in the settings section - althought not recommended. note that this does not affect the search functionality
-- Shared folders can be set as master directories for team use.
+- Shared folders can be set as master directories for team use
 
 ### Settings Section
 - Background options
-- Icon options? (might be to much of a hassle)
-- Ignore specific folders option (globally or per master directory? not sure)
 - Item cap option (limit for the number of items that can be rendered)
 - Ability to pin master directories
+- Link colour (the lines connecting items)
+
+- Ignore specific folders option (globally or per master directory? not sure)
+- Icon options? (might be to much of a hassle)
 
 ---
 
@@ -74,7 +77,7 @@ Rust recursively gets the files and folders in a chosen directory, supplies it t
 
 ### But how does linking unrelated folders and files work?
 Currently, haven't added it yet but I believe I can create my own dot file (.gitignorre, .git, .env, etc).
-It'll probably be named `.treeview` or something along those lines
+It'll probably be named `.treeview` or something along those lines.
 
 Maybe just draw a line connecting them on the frontend and save it to localstorage? not sure.
 
