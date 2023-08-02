@@ -62,8 +62,8 @@ fn get_properties(directory: &str, filename: &str) -> Properties {
 }
 
 #[tauri::command]
-fn load_directory(directory: &str, limit: usize) -> (Vec<String>, usize) {
-    let mut content: Vec<_> = WalkDir::new(directory)
+fn load_directory(directory: &str) -> (Vec<String>, usize) {
+    let content: Vec<_> = WalkDir::new(directory)
                 .follow_links(true)
                 .into_iter()
                 .filter_map(|f| f.ok())
@@ -72,12 +72,7 @@ fn load_directory(directory: &str, limit: usize) -> (Vec<String>, usize) {
                 .map(|f| f.path().display().to_string())
                 .collect();
 
-    let real_size = content.len();
-    if real_size > limit {
-        content.truncate(limit);
-
-        return (content, real_size);
-    }
+    let real_size = content.len(); 
 
     return (content, real_size)
 }

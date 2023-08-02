@@ -33,6 +33,7 @@
 
     let paths = ["welcome, create a directory^"]; // main path array, everything tracks back to this
     let pathTmp = []; // to be able to go back to the original paths when done with searching
+    let pathReal = [];
     let pathRealSize = 0;
 
     let width = 1400;
@@ -40,10 +41,11 @@
     let recWidth = 60;
     let recHeight = 40;
 
-    async function handleLoadDirectory(homeDirectory, limit) {
-        let [received, recRealSize] =  await invoke("load_directory", {directory: homeDirectory, limit});
+    async function handleLoadDirectory(homeDirectory) {
+        let [received, recRealSize] =  await invoke("load_directory", {directory: homeDirectory});
         paths = [];
         pathTmp = [];
+        pathReal = [];
         
         for (let i = 0; i < received.length; i++) {
             let newString = received[i].replaceAll("\\", "/");
@@ -51,7 +53,8 @@
             received[i] = newString;
         }
 
-        paths = received;
+        pathReal = received;
+        paths = pathReal.slice(0, pL);
         pathRealSize = recRealSize;
     }
 
@@ -67,7 +70,7 @@
             }
         }
         
-        await handleLoadDirectory(storedDirectories[index].directoryPath, pL);
+        await handleLoadDirectory(storedDirectories[index].directoryPath);
     })
 
     const shortenPath = (path) => {
@@ -80,9 +83,13 @@
         if (e.key === "Enter" && searchValue != "" && searchValue != "") {
             paths = pathTmp.length !== 0 ? pathTmp : paths;
 
-            let fullName = paths.filter(obj => {
+            let fullName = pathReal.filter(obj => {
                 return obj.toLowerCase().includes(searchValue.toLowerCase());
-            })
+            });
+
+            if (fullName.length === 0) {
+                return;
+            }
 
             pathTmp = paths; // this updates the temperary value to the old paths
             paths = fullName; // this updates d3 with the found searched terms
@@ -116,7 +123,7 @@
         localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
 
         homeDirectory = storedDirectories[storedDirectories.length - 1].directoryPath;
-        await handleLoadDirectory(homeDirectory, pL);
+        await handleLoadDirectory(homeDirectory);
 
         nickname.value = "";
         addDirectoryDialog.close();
@@ -137,7 +144,7 @@
 
         if (storedDirectories.length !== 0) {
             homeDirectory = storedDirectories[storedDirectories.length - 1].directoryPath
-            handleLoadDirectory(homeDirectory, pL);
+            handleLoadDirectory(homeDirectory);
         } else {
             homeDirectory = "";
             paths = ["welcome, create a directory^"];
@@ -156,12 +163,12 @@
     }
 
     listen('refresh', () => {
-        handleLoadDirectory(homeDirectory, pL);
+        handleLoadDirectory(homeDirectory);
     });
 
     listen('refresh-remove', async (event) => {
         if (event.payload.isDir) {
-            await handleLoadDirectory(homeDirectory, pL);
+            await handleLoadDirectory(homeDirectory);
             return;
         }
 
@@ -183,7 +190,7 @@
     <ul class="unselectable" unselectable="on">
         <li>
             <!-- refactor this to drag and drop the options to pin them -->
-            <select bind:value={homeDirectory} id="homeDirectory" title="choose directory" on:change={async () => await handleLoadDirectory(homeDirectory, pL)}>
+            <select bind:value={homeDirectory} id="homeDirectory" title="choose directory" on:change={async () => await handleLoadDirectory(homeDirectory)}>
                 {#each storedDirectories as storedDirectory}
                     {#if storedDirectory.nickname == pinned}
                         <option selected value={storedDirectory.directoryPath}>{storedDirectory.nickname}</option>
@@ -203,7 +210,7 @@
             <input type="text" id="search" spellcheck="false" placeholder="search" bind:value={searchValue} on:keydown={handleSearchBar}/>
         </li>
         <li style="float: right; right: 0;">
-            <button on:click={_ => handleLoadDirectory(homeDirectory, pL)} title="refresh tree">
+            <button on:click={_ => handleLoadDirectory(homeDirectory)} title="refresh tree">
                 <svg width="15px" height="15px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                     <g id="SVGRepo_iconCarrier">

@@ -35,6 +35,7 @@ updated ui:
 As of this moment, the only way to run this for yourself is by cloning the repo run these commands in the directory:
 
 `npm i`
+
 `npm run tauri dev`
 
 This project has not been tested in its build version and is not recommended until Tree View is in 1.0
@@ -54,7 +55,7 @@ This project has not been tested in its build version and is not recommended unt
 ### Tips / Hints
 - Hover over files / folders to see their name
 - Search for files and folders with the name of them [note: all entities that has the search term in its path will be displayed]
-- There is a 50 item cap to prevent crammed UI, however this can be easily changed in the `main.rs` file under `load_directory` function. This is not recommended though.
+- There is a render cap of 50 items to prevent crammed UI, this can be changed in the settings section - althought not recommended. note that this does not affect the search functionality
 - Shared folders can be set as master directories for team use.
 
 ### Settings Section
