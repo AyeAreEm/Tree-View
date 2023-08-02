@@ -4,6 +4,11 @@ Testing on Windows 10 and macOs Ventura - no guarantees for Linux
 
 be wary of Directory Man!
 <p align="center">
+    <img src="directory-man.png" width=500/>
+</p>
+
+updated ui:
+<p align="center">
     <img src="sample.png" width=500/>
 </p>
 
@@ -17,14 +22,11 @@ be wary of Directory Man!
 - ✅ Option to open directory in terminal
 - ✅ Remove a file or folder
 - ✅ Add a new file or folder
-- Ability to pin master directories
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - [Settings Section](#settings-section) 
 
 ## Todos
-- ✅ Don't display big folders such as node_modules and .git
-- ✅ Add refresh button
-- 👷‍♂️ Add settings section with customisation (i.e. change background, specific folder's to ignore, etc)
+- 👷‍♂️ Add settings section with customisation (background ✅, pin ✅, item limit ✅, ignore specific items 👷‍♂️)
 - Don't display dot files such as .DS_Store and .gitignore? (maybe)
 
 ---
@@ -53,11 +55,14 @@ This project has not been tested in its build version and is not recommended unt
 - Hover over files / folders to see their name
 - Search for files and folders with the name of them [note: all entities that has the search term in its path will be displayed]
 - There is a 50 item cap to prevent crammed UI, however this can be easily changed in the `main.rs` file under `load_directory` function. This is not recommended though.
-- Shared folders can be set as master directories for company use.
+- Shared folders can be set as master directories for team use.
 
 ### Settings Section
 - Background options
 - Icon options? (might be to much of a hassle)
+- Ignore specific folders option (globally or per master directory? not sure)
+- Item cap option (limit for the number of items that can be rendered)
+- Ability to pin master directories
 
 ---
 

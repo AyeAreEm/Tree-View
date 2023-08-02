@@ -16,7 +16,8 @@
 }
 
 body {
-    background-color: #252525;
+    background-repeat: no-repeat;
+    background-size: 100% 100vh;
     margin: 0;
     padding: 0;
 }
@@ -40,6 +41,9 @@ a:hover {
 }
 
 ul {
+    position: fixed;
+    top: 0;
+    width: 99%; /* LMAO IT JUST WORKS, DONT CHANGE */
     list-style-type: none;
     margin: 0;
     padding-left: 0.5em;
@@ -92,7 +96,7 @@ button:active {
 dialog {
     padding: 0.5rem;
     background: #252525;
-    border-radius: 0.25rem; 
+    border-radius: 0.5em; 
     z-index: 10;
 }
 
@@ -102,4 +106,13 @@ input[type=color] {
     background-color: black;
     width: 5em;
     height: 2.5em;
+}
+
+hr {
+    display: block;
+    height: 2px;
+    border: 0;
+    border-top: 2px solid black;
+    margin: 1em 0;
+    padding: 0;
 }

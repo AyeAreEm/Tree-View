@@ -62,22 +62,24 @@ fn get_properties(directory: &str, filename: &str) -> Properties {
 }
 
 #[tauri::command]
-fn load_directory(directory: &str) -> Vec<String> {
-    let content: Vec<_> = WalkDir::new(directory)
+fn load_directory(directory: &str, limit: usize) -> (Vec<String>, usize) {
+    let mut content: Vec<_> = WalkDir::new(directory)
                 .follow_links(true)
                 .into_iter()
                 .filter_map(|f| f.ok())
                 // refactor this, load filters from file (csv) maybe?
-                .filter(|f| !f.path().display().to_string().contains("node_modules") && !f.path().display().to_string().contains(".git") && !f.path().display().to_string().contains("target"))
+                .filter(|f| !f.path().display().to_string().contains("node_modules") && !f.path().display().to_string().contains(".git") && !f.path().display().to_string().contains("target") && !f.path().display().to_string().contains(".DS_Store"))
                 .map(|f| f.path().display().to_string())
                 .collect();
 
-    if content.len() > 50 {
-        let content_msg: Vec<String> = vec!["this directory too big lol soz.".to_string()];
-        return content_msg;
+    let real_size = content.len();
+    if real_size > limit {
+        content.truncate(limit);
+
+        return (content, real_size);
     }
 
-    return content
+    return (content, real_size)
 }
 
 #[tauri::command]

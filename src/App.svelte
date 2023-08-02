@@ -1,5 +1,6 @@
 <script>
     import { hideSettings } from "./stores";
+    import { pathLimit } from "./stores";
     import { onMount } from "svelte";
     import { invoke } from '@tauri-apps/api/tauri';
     import { listen } from '@tauri-apps/api/event'
@@ -8,6 +9,21 @@
     import G from "./lib/G.svelte";
     import Settings from "./lib/Settings.svelte";
 
+    // maybe have "artifical links" stored in localstorage either in its own or maybe better to use storedDirectories but change it to an object
+    let bgUrl = localStorage.getItem("bgUrl") ? JSON.parse(localStorage.getItem("bgUrl")) : "";
+    let bgColor = localStorage.getItem("bgColor") ? JSON.parse(localStorage.getItem("bgColor")) : "#252525";
+    let storedDirectories = localStorage.getItem("storedDirectories") ? JSON.parse(localStorage.getItem("storedDirectories")) : [];
+    // god forgive me for this one liner
+    let pinned = localStorage.getItem("pinned") ? JSON.parse(localStorage.getItem("pinned")) : storedDirectories[0].nickname ? storedDirectories[0].nickname : '';
+
+    let pL;
+    pathLimit.subscribe(value => {
+        pL = value;
+    });
+
+    document.body.style.backgroundImage = `url('${bgUrl}')`;
+    document.body.style.backgroundColor = bgColor;
+
     let homeDirectory; // selected storedDirectory
     let searchValue; // search bar
     
@@ -15,19 +31,17 @@
     let addDirectoryDialog;
     let removeDirectoryDialog;
 
-    // maybe have "artifical links" stored in localstorage either in its own or maybe better to use storedDirectories but change it to an object
-    let storedDirectories = localStorage.getItem("storedDirectories") ? JSON.parse(localStorage.getItem("storedDirectories")) : [];
-
     let paths = ["welcome, create a directory^"]; // main path array, everything tracks back to this
-    let pathTmp; // to be able to go back to the original paths when done with searching
+    let pathTmp = []; // to be able to go back to the original paths when done with searching
+    let pathRealSize = 0;
 
     let width = 1400;
     let height = 775;
     let recWidth = 60;
     let recHeight = 40;
 
-    async function handleLoadDirectory(homeDirectory) {
-        let received =  await invoke("load_directory", {directory: homeDirectory});
+    async function handleLoadDirectory(homeDirectory, limit) {
+        let [received, recRealSize] =  await invoke("load_directory", {directory: homeDirectory, limit});
         paths = [];
         pathTmp = [];
         
@@ -38,14 +52,22 @@
         }
 
         paths = received;
+        pathRealSize = recRealSize;
     }
 
     onMount(async () => {
         if (!storedDirectories.length) {
             return;
         }
+
+        let index = 0;
+        for (let i = 0; i < storedDirectories.length; i++) {
+            if (storedDirectories[i].nickname == pinned) {
+                index = i;
+            }
+        }
         
-        await handleLoadDirectory(storedDirectories[0].directoryPath);
+        await handleLoadDirectory(storedDirectories[index].directoryPath, pL);
     })
 
     const shortenPath = (path) => {
@@ -62,7 +84,7 @@
                 return obj.toLowerCase().includes(searchValue.toLowerCase());
             })
 
-            pathTmp = paths; // this the temperary value to the old paths
+            pathTmp = paths; // this updates the temperary value to the old paths
             paths = fullName; // this updates d3 with the found searched terms
         } else if (e.key === "Enter" && searchValue == "") {
             paths = pathTmp.length !== 0 ? pathTmp : paths;
@@ -94,7 +116,7 @@
         localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
 
         homeDirectory = storedDirectories[storedDirectories.length - 1].directoryPath;
-        await handleLoadDirectory(homeDirectory);
+        await handleLoadDirectory(homeDirectory, pL);
 
         nickname.value = "";
         addDirectoryDialog.close();
@@ -115,7 +137,7 @@
 
         if (storedDirectories.length !== 0) {
             homeDirectory = storedDirectories[storedDirectories.length - 1].directoryPath
-            handleLoadDirectory(homeDirectory);
+            handleLoadDirectory(homeDirectory, pL);
         } else {
             homeDirectory = "";
             paths = ["welcome, create a directory^"];
@@ -126,8 +148,6 @@
     }
     
     const handleContext = async (directory, filename) => {
-        // rmb to actually make a context menu, and instead have this code below be one of the onclick functions
-
         await invoke("make_properties_window", {filename});
 
         setTimeout( async () => {
@@ -135,9 +155,13 @@
         }, 300);
     }
 
+    listen('refresh', () => {
+        handleLoadDirectory(homeDirectory, pL);
+    });
+
     listen('refresh-remove', async (event) => {
         if (event.payload.isDir) {
-            await handleLoadDirectory(homeDirectory);
+            await handleLoadDirectory(homeDirectory, pL);
             return;
         }
 
@@ -159,9 +183,13 @@
     <ul class="unselectable" unselectable="on">
         <li>
             <!-- refactor this to drag and drop the options to pin them -->
-            <select bind:value={homeDirectory} id="homeDirectory" title="choose directory" on:change={async () => await handleLoadDirectory(homeDirectory)}>
+            <select bind:value={homeDirectory} id="homeDirectory" title="choose directory" on:change={async () => await handleLoadDirectory(homeDirectory, pL)}>
                 {#each storedDirectories as storedDirectory}
-                    <option value={storedDirectory.directoryPath}>{storedDirectory.nickname}</option>
+                    {#if storedDirectory.nickname == pinned}
+                        <option selected value={storedDirectory.directoryPath}>{storedDirectory.nickname}</option>
+                    {:else}
+                        <option value={storedDirectory.directoryPath}>{storedDirectory.nickname}</option>
+                    {/if}
                 {/each}
             </select>
         </li>
@@ -171,11 +199,11 @@
         <li>
             <button class="caution" on:click={removeDirectoryDialog.showModal()} title="remove parent directory">-</button>
         </li>
-        <li style="float: right;">
+        <li style="float: right; right: 0;">
             <input type="text" id="search" spellcheck="false" placeholder="search" bind:value={searchValue} on:keydown={handleSearchBar}/>
         </li>
-        <li style="float: right;">
-            <button on:click={_ => handleLoadDirectory(homeDirectory)} title="refresh tree">
+        <li style="float: right; right: 0;">
+            <button on:click={_ => handleLoadDirectory(homeDirectory, pL)} title="refresh tree">
                 <svg width="15px" height="15px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                     <g id="SVGRepo_iconCarrier">
@@ -186,15 +214,21 @@
         </li>
     </ul>
 
-    <button title="settings" style="position: absolute; bottom: 0; left: 0; margin: 0.5em;" on:click={_ => hideSettings.set(false)}>
-        <svg width="18px" height="18px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-            <g id="SVGRepo_iconCarrier">
-                <circle cx="12" cy="12" r="3" stroke="#cfcfcf" stroke-width="1.5"></circle>
-                <path d="M3.66122 10.6392C4.13377 10.9361 4.43782 11.4419 4.43782 11.9999C4.43781 12.558 4.13376 13.0638 3.66122 13.3607C3.33966 13.5627 3.13248 13.7242 2.98508 13.9163C2.66217 14.3372 2.51966 14.869 2.5889 15.3949C2.64082 15.7893 2.87379 16.1928 3.33973 16.9999C3.80568 17.8069 4.03865 18.2104 4.35426 18.4526C4.77508 18.7755 5.30694 18.918 5.83284 18.8488C6.07287 18.8172 6.31628 18.7185 6.65196 18.5411C7.14544 18.2803 7.73558 18.2699 8.21895 18.549C8.70227 18.8281 8.98827 19.3443 9.00912 19.902C9.02332 20.2815 9.05958 20.5417 9.15224 20.7654C9.35523 21.2554 9.74458 21.6448 10.2346 21.8478C10.6022 22 11.0681 22 12 22C12.9319 22 13.3978 22 13.7654 21.8478C14.2554 21.6448 14.6448 21.2554 14.8478 20.7654C14.9404 20.5417 14.9767 20.2815 14.9909 19.9021C15.0117 19.3443 15.2977 18.8281 15.7811 18.549C16.2644 18.27 16.8545 18.2804 17.3479 18.5412C17.6837 18.7186 17.9271 18.8173 18.1671 18.8489C18.693 18.9182 19.2249 18.7756 19.6457 18.4527C19.9613 18.2106 20.1943 17.807 20.6603 17C20.8677 16.6407 21.029 16.3614 21.1486 16.1272M20.3387 13.3608C19.8662 13.0639 19.5622 12.5581 19.5621 12.0001C19.5621 11.442 19.8662 10.9361 20.3387 10.6392C20.6603 10.4372 20.8674 10.2757 21.0148 10.0836C21.3377 9.66278 21.4802 9.13092 21.411 8.60502C21.3591 8.2106 21.1261 7.80708 20.6601 7.00005C20.1942 6.19301 19.9612 5.7895 19.6456 5.54732C19.2248 5.22441 18.6929 5.0819 18.167 5.15113C17.927 5.18274 17.6836 5.2814 17.3479 5.45883C16.8544 5.71964 16.2643 5.73004 15.781 5.45096C15.2977 5.1719 15.0117 4.6557 14.9909 4.09803C14.9767 3.71852 14.9404 3.45835 14.8478 3.23463C14.6448 2.74458 14.2554 2.35523 13.7654 2.15224C13.3978 2 12.9319 2 12 2C11.0681 2 10.6022 2 10.2346 2.15224C9.74458 2.35523 9.35523 2.74458 9.15224 3.23463C9.05958 3.45833 9.02332 3.71848 9.00912 4.09794C8.98826 4.65566 8.70225 5.17191 8.21891 5.45096C7.73557 5.73002 7.14548 5.71959 6.65205 5.4588C6.31633 5.28136 6.0729 5.18269 5.83285 5.15108C5.30695 5.08185 4.77509 5.22436 4.35427 5.54727C4.03866 5.78945 3.80569 6.19297 3.33974 7C3.13231 7.35929 2.97105 7.63859 2.85138 7.87273" stroke="#cfcfcf" stroke-width="1.5" stroke-linecap="round"></path>
-            </g>
-        </svg>
-    </button>
+    <div style="position: fixed; bottom: 0; width: 100%;">
+        <button title="settings" style="position: absolute; bottom: 0; left: 0; margin: 0.5em;" on:click={_ => hideSettings.set(false)}>
+            <svg width="18px" height="18px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                    <circle cx="12" cy="12" r="3" stroke="#cfcfcf" stroke-width="1.5"></circle>
+                    <path d="M3.66122 10.6392C4.13377 10.9361 4.43782 11.4419 4.43782 11.9999C4.43781 12.558 4.13376 13.0638 3.66122 13.3607C3.33966 13.5627 3.13248 13.7242 2.98508 13.9163C2.66217 14.3372 2.51966 14.869 2.5889 15.3949C2.64082 15.7893 2.87379 16.1928 3.33973 16.9999C3.80568 17.8069 4.03865 18.2104 4.35426 18.4526C4.77508 18.7755 5.30694 18.918 5.83284 18.8488C6.07287 18.8172 6.31628 18.7185 6.65196 18.5411C7.14544 18.2803 7.73558 18.2699 8.21895 18.549C8.70227 18.8281 8.98827 19.3443 9.00912 19.902C9.02332 20.2815 9.05958 20.5417 9.15224 20.7654C9.35523 21.2554 9.74458 21.6448 10.2346 21.8478C10.6022 22 11.0681 22 12 22C12.9319 22 13.3978 22 13.7654 21.8478C14.2554 21.6448 14.6448 21.2554 14.8478 20.7654C14.9404 20.5417 14.9767 20.2815 14.9909 19.9021C15.0117 19.3443 15.2977 18.8281 15.7811 18.549C16.2644 18.27 16.8545 18.2804 17.3479 18.5412C17.6837 18.7186 17.9271 18.8173 18.1671 18.8489C18.693 18.9182 19.2249 18.7756 19.6457 18.4527C19.9613 18.2106 20.1943 17.807 20.6603 17C20.8677 16.6407 21.029 16.3614 21.1486 16.1272M20.3387 13.3608C19.8662 13.0639 19.5622 12.5581 19.5621 12.0001C19.5621 11.442 19.8662 10.9361 20.3387 10.6392C20.6603 10.4372 20.8674 10.2757 21.0148 10.0836C21.3377 9.66278 21.4802 9.13092 21.411 8.60502C21.3591 8.2106 21.1261 7.80708 20.6601 7.00005C20.1942 6.19301 19.9612 5.7895 19.6456 5.54732C19.2248 5.22441 18.6929 5.0819 18.167 5.15113C17.927 5.18274 17.6836 5.2814 17.3479 5.45883C16.8544 5.71964 16.2643 5.73004 15.781 5.45096C15.2977 5.1719 15.0117 4.6557 14.9909 4.09803C14.9767 3.71852 14.9404 3.45835 14.8478 3.23463C14.6448 2.74458 14.2554 2.35523 13.7654 2.15224C13.3978 2 12.9319 2 12 2C11.0681 2 10.6022 2 10.2346 2.15224C9.74458 2.35523 9.35523 2.74458 9.15224 3.23463C9.05958 3.45833 9.02332 3.71848 9.00912 4.09794C8.98826 4.65566 8.70225 5.17191 8.21891 5.45096C7.73557 5.73002 7.14548 5.71959 6.65205 5.4588C6.31633 5.28136 6.0729 5.18269 5.83285 5.15108C5.30695 5.08185 4.77509 5.22436 4.35427 5.54727C4.03866 5.78945 3.80569 6.19297 3.33974 7C3.13231 7.35929 2.97105 7.63859 2.85138 7.87273" stroke="#cfcfcf" stroke-width="1.5" stroke-linecap="round"></path>
+                </g>
+            </svg>
+        </button>
+
+        <p class="unselectable" unselectable="on" title="number of entities" style="position: absolute; bottom: 0; right: 0; margin: 0.5em; cursor: default;">
+            {paths.length == pathRealSize ? paths.length : pathRealSize} / {pL}
+        </p>
+    </div>
 
     <dialog bind:this={addDirectoryDialog}>
         <p style="color: white;">provide an existing directory</p>
@@ -212,10 +246,10 @@
             <input class="caution" type="submit" value="remove"/>
         </form>
     </dialog>
-    <Settings />
+    <Settings {storedDirectories} {bgUrl} {bgColor} {pinned}/>
 
     <!-- refactor this, remove repeating code, maybe put some of it inside the G.svelte file -->
-    <svg width={width} height={height}  viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
+    <svg style="margin-top: 3.5em;" width={width} height={height}  viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
         {#each root.descendants() as node}
             {@const short = shortenPath(node.id)}
             {#if node.id.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
