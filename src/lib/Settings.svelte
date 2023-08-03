@@ -2,6 +2,7 @@
     import { hideSettings } from "../stores";
     import { pathLimit } from "../stores";
     import { ignores } from "../stores";
+    import { lineColor } from "../stores";
     import { onMount } from "svelte";
     import { emit } from "@tauri-apps/api/event";
 
@@ -30,6 +31,12 @@
     ignores.subscribe(value => {
         ig = value;
     })
+
+    let lC;
+    lineColor.subscribe(value => {
+        lC = value;
+    })
+    let setLineColor = lC;
 
     onMount(() => {
         settingsDialog.addEventListener('close', () => {
@@ -68,6 +75,7 @@
     const saveSettings = () => {
         localStorage.setItem("bgColor", JSON.stringify(bgColor));
         localStorage.setItem("bgUrl", JSON.stringify(bgUrl));
+        localStorage.setItem("lineColor", JSON.stringify(setLineColor));
         localStorage.setItem("pinned", JSON.stringify(selectedPin));
 
         localStorage.setItem("pathLimit", JSON.stringify(selectedLimit));
@@ -96,6 +104,9 @@
 
         <label for="bg-url">background image: </label>
         <input spellcheck="false" type="text" name="bg-url" id="bg-url" bind:value={bgUrl} on:keydown={e => displayBgUrl(e)}/><br><br>
+
+        <label for="line-color">line colour: </label>
+        <input on:change={_ => document.querySelectorAll('line').forEach(elem => elem.style.stroke = setLineColor)} type="color" name="line-color" id="line-color" bind:value={setLineColor}/><br><br>
 
         <label for="pin">pin on launch: </label>
         <select name="pin" bind:value={selectedPin}>

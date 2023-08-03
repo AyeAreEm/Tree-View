@@ -62,7 +62,7 @@ fn get_properties(directory: &str, filename: &str) -> Properties {
 }
 
 #[tauri::command]
-fn load_directory(directory: &str, user_ignores: Vec<String>) -> (Vec<String>, usize) {
+fn load_directory(directory: &str, user_ignores: Vec<String>) -> Vec<String> {
     let mut ignores = vec!["node_modules".to_string(), ".git".to_string(), "target".to_string(), ".DS_Store".to_string()];
     ignores.extend(user_ignores);
 
@@ -78,9 +78,7 @@ fn load_directory(directory: &str, user_ignores: Vec<String>) -> (Vec<String>, u
                 .map(|f| f.path().display().to_string())
                 .collect();
 
-    let real_size = content.len(); 
-
-    return (content, real_size)
+    return content
 }
 
 #[tauri::command]
@@ -110,15 +108,14 @@ fn get_properties_command(window: Window, directory: String, filename: String) {
 }
 
 fn open_on_windows(location: &str, application: &str) {
-    let result = location.replace("/", "\\");
-    let index = if fs::metadata(result.clone()).unwrap().is_file() {result.rfind("\\").unwrap()} else {result.len()};
+    let index = if fs::metadata(location.clone()).unwrap().is_file() {location.rfind("\\").unwrap()} else {location.len()};
 
     match application {
         "" => {
-            match open::that(result.clone()) {
+            match open::that(location.clone()) {
                 Ok(_) => (),
                 Err(_) => {
-                    open::that(result[0..index].to_string()).unwrap();
+                    open::that(location[0..index].to_string()).unwrap();
                 }
             }
         },
@@ -127,14 +124,14 @@ fn open_on_windows(location: &str, application: &str) {
                 .arg("/K")
                 .arg("cd")
                 .arg("/d")
-                .arg(format!("{}", &result[0..index]))
+                .arg(format!("{}", &location[0..index]))
                 .spawn()
                 .unwrap();
         },
         "explorer" => {
-            open::that(result[0..index].to_string()).unwrap();
+            open::that(location[0..index].to_string()).unwrap();
         },
-        _ => open::that(result).unwrap(),
+        _ => open::that(location).unwrap(),
     }
 
 }
@@ -210,7 +207,6 @@ fn remove_location(location: String, is_dir: bool) -> i8 {
             Err(_) => 1,
         }
     }
-
 }
 
 fn main() {

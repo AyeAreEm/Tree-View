@@ -2,6 +2,7 @@
     import { hideSettings } from "./stores";
     import { pathLimit } from "./stores";
     import { ignores } from "./stores";
+    import { lineColor } from "./stores";
     import { onMount } from "svelte";
     import { invoke } from '@tauri-apps/api/tauri';
     import { listen } from '@tauri-apps/api/event'
@@ -27,6 +28,11 @@
         ig = value;
     });
 
+    let lC;
+    lineColor.subscribe(value => {
+        lC = value;
+    })
+
     document.body.style.backgroundImage = `url('${bgUrl}')`;
     document.body.style.backgroundColor = bgColor;
 
@@ -40,7 +46,6 @@
     let paths = ["welcome, create a directory^"]; // main path array, everything tracks back to this
     let pathTmp = []; // to be able to go back to the original paths when done with searching
     let pathReal = [];
-    let pathRealSize = 0;
 
     let width = 1400;
     let height = 775;
@@ -48,20 +53,11 @@
     let recHeight = 40;
 
     async function handleLoadDirectory(homeDirectory) {
-        let [received, recRealSize] =  await invoke("load_directory", {directory: homeDirectory, userIgnores: ig});
-        paths = [];
+        let received =  await invoke("load_directory", {directory: homeDirectory, userIgnores: ig});
         pathTmp = [];
-        pathReal = [];
-        
-        for (let i = 0; i < received.length; i++) {
-            let newString = received[i].replaceAll("\\", "/");
-
-            received[i] = newString;
-        }
 
         pathReal = received;
         paths = pathReal.slice(0, pL);
-        pathRealSize = recRealSize;
     }
 
     onMount(async () => {
@@ -184,7 +180,8 @@
     });
 
     listen('refresh-add', (event) => {
-        paths = paths.concat([event.payload.added]);
+        pathReal = paths.concat([event.payload.added]);
+        paths = pathReal.slice(0, pL);
     });
 
     $: root = d3.stratify().path((d) => d)(paths);
@@ -239,7 +236,7 @@
         </button>
 
         <p class="unselectable" unselectable="on" title="number of entities" style="position: absolute; bottom: 0; right: 0; margin: 0.5em; cursor: default;">
-            {paths.length == pathRealSize ? paths.length : pathRealSize} / {pL}
+            {paths.length == pathReal.length ? paths.length : pathReal.length} / {pL}
         </p>
     </div>
 
@@ -309,7 +306,7 @@
             {/if}
         {/each}
         {#each root.links() as link}
-            <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke="#adadad"></line>
+            <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={lC}></line>
         {/each}
     </svg>
 </main>

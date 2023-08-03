@@ -26,7 +26,6 @@ updated ui:
 - [Settings Section](#settings-section) 
 
 ## Todos
-- ✅ Add settings section with customisation (background ✅, pin ✅, item limit ✅, ignore specific items ✅)
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 
 ---
@@ -64,8 +63,8 @@ This project has not been tested in its build version and is not recommended unt
 - Item cap option (limit for the number of items that can be rendered)
 - Ability to pin master directories
 - Link colour (the lines connecting items)
+- Ignore specific folders option (globally)
 
-- Ignore specific folders option (globally or per master directory? not sure)
 - Icon options? (might be to much of a hassle)
 
 ---
@@ -116,6 +115,7 @@ That's it. Done. Amazing. Using this, I had to convert the path buffer to a stri
 I wanna throw a washing machine at the nearest wall.
 The learning curve for D3 is insane. The docs are _decently_ documented but it feels like they assume you know what each thing returns or what methods are chainable.
 To be fair, this is the first time I'm using D3, and it's gonna be the major part of this project so unless I can find a smaller library or write code that can draw diagrams from scratch by myself, I should keep quite, suck it up, and just git gud
+
 I will say, after spending a quater of a day, it gets easier to notice similarities and a sort of "system" if that makes sense.
 
 BUT, working with svg's is another nightmare. And the fact that there is not a lot of people using svelte and d3, there's almost no examples.
