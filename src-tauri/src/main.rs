@@ -62,13 +62,19 @@ fn get_properties(directory: &str, filename: &str) -> Properties {
 }
 
 #[tauri::command]
-fn load_directory(directory: &str) -> (Vec<String>, usize) {
+fn load_directory(directory: &str, user_ignores: Vec<String>) -> (Vec<String>, usize) {
+    let mut ignores = vec!["node_modules".to_string(), ".git".to_string(), "target".to_string(), ".DS_Store".to_string()];
+    ignores.extend(user_ignores);
+
     let content: Vec<_> = WalkDir::new(directory)
                 .follow_links(true)
                 .into_iter()
                 .filter_map(|f| f.ok())
                 // refactor this, load filters from file (csv) maybe?
-                .filter(|f| !f.path().display().to_string().contains("node_modules") && !f.path().display().to_string().contains(".git") && !f.path().display().to_string().contains("target") && !f.path().display().to_string().contains(".DS_Store"))
+                .filter(|f| {
+                    let path_display = f.path().display().to_string();
+                    !ignores.iter().any(|ignore| path_display.contains(ignore))
+                })
                 .map(|f| f.path().display().to_string())
                 .collect();
 

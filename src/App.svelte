@@ -1,6 +1,7 @@
 <script>
     import { hideSettings } from "./stores";
     import { pathLimit } from "./stores";
+    import { ignores } from "./stores";
     import { onMount } from "svelte";
     import { invoke } from '@tauri-apps/api/tauri';
     import { listen } from '@tauri-apps/api/event'
@@ -19,6 +20,11 @@
     let pL;
     pathLimit.subscribe(value => {
         pL = value;
+    });
+
+    let ig;
+    ignores.subscribe(value => {
+        ig = value;
     });
 
     document.body.style.backgroundImage = `url('${bgUrl}')`;
@@ -42,7 +48,7 @@
     let recHeight = 40;
 
     async function handleLoadDirectory(homeDirectory) {
-        let [received, recRealSize] =  await invoke("load_directory", {directory: homeDirectory});
+        let [received, recRealSize] =  await invoke("load_directory", {directory: homeDirectory, userIgnores: ig});
         paths = [];
         pathTmp = [];
         pathReal = [];

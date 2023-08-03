@@ -26,8 +26,8 @@ updated ui:
 - [Settings Section](#settings-section) 
 
 ## Todos
-- 👷‍♂️ Add settings section with customisation (background ✅, pin ✅, item limit ✅, ignore specific items 👷‍♂️)
-- Don't display dot files such as .DS_Store and .gitignore? (maybe)
+- ✅ Add settings section with customisation (background ✅, pin ✅, item limit ✅, ignore specific items ✅)
+- Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 
 ---
 
