@@ -89,7 +89,10 @@
     
     const saveSettings = () => {
         localStorage.setItem("bgColor", JSON.stringify(bgColor));
+
         localStorage.setItem("bgUrl", JSON.stringify(bgUrl));
+        document.body.style.backgroundImage = `url('${bgUrl}')`;
+
         localStorage.setItem("lineColor", JSON.stringify(setLineColor));
         localStorage.setItem("pinned", JSON.stringify(selectedPin));
 

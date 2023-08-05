@@ -230,6 +230,14 @@
                 </svg>
             </button>
         </li>
+        <li style="float: right; right: 0;">
+            <button title="line">
+                <svg width="15px" height="15px" viewBox="0 0 20 20" fill="none" stroke="#cfcfcf" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- <path d="M4.167 10h11.666" stroke-width="1.5"></path> -->
+                    <line x1="0" y1="0" x2="200" y2="200"  stroke-width="1.5"/>
+                </svg>
+            </button>
+        </li>
     </ul>
 
     <div style="position: fixed; bottom: 0; width: 100%;">

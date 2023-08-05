@@ -187,6 +187,10 @@
                 location = `${directoryLocation}\\${inp.value}`;
             }
 
+            if (!location.endsWith("/") && !location.includes(".")) {
+                location = `${location}.txt`;
+            }
+
             invoke("create_location", {location})
                 .then(res => {
                     location = location.endsWith("/") ? location.substring(0, location.length - 1) : location;
