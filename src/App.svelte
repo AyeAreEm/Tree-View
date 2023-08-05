@@ -1,8 +1,5 @@
 <script>
-    import { hideSettings } from "./stores";
-    import { pathLimit } from "./stores";
-    import { ignores } from "./stores";
-    import { lineColor } from "./stores";
+    import { hideSettings, pathLimit, ignores, hides, lineColor } from "./stores";
     import { onMount } from "svelte";
     import { invoke } from '@tauri-apps/api/tauri';
     import { listen } from '@tauri-apps/api/event'
@@ -28,10 +25,15 @@
         ig = value;
     });
 
+    let hI;
+    hides.subscribe(value => {
+        hI = value;
+    });
+
     let lC;
     lineColor.subscribe(value => {
         lC = value;
-    })
+    });
 
     document.body.style.backgroundImage = `url('${bgUrl}')`;
     document.body.style.backgroundColor = bgColor;
@@ -58,6 +60,12 @@
 
         pathReal = received;
         paths = pathReal.slice(0, pL);
+
+        if (hI.length !== 0) {
+            paths = paths.filter(obj => {
+                return !obj.includes(hI);
+            })
+        }
     }
 
     onMount(async () => {
@@ -306,7 +314,7 @@
             {/if}
         {/each}
         {#each root.links() as link}
-            <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={lC}></line>
+            <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={lC} stroke-width="2"></line>
         {/each}
     </svg>
 </main>
