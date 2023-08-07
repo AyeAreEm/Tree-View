@@ -5,7 +5,7 @@
     let waiting = false;
     let timeout = null;
     let delay = 300;
-    export let id = "";
+    export let titleId = "";
 
     const handleClickType = () => {
         if (waiting) {
@@ -22,7 +22,7 @@
     }
 </script>
 
-<g {id} on:click={handleClickType} on:keydown={handleClickType}>
-    <title>{id}</title>
+<g on:click={handleClickType} on:keydown={handleClickType}>
+    <title>{titleId}</title>
     <slot />
 </g>

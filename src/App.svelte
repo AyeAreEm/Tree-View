@@ -1,5 +1,5 @@
 <script>
-    import { hideSettings, pathLimit, ignores, hides, lineColor } from "./stores";
+    import { hideSettings, hideCreateEnt, hideDeleteEnt, createORDelDir, pathLimit, ignores, hides, lineColor } from "./stores";
     import { onMount } from "svelte";
     import { invoke } from '@tauri-apps/api/tauri';
     import { listen } from '@tauri-apps/api/event'
@@ -7,6 +7,8 @@
     import * as d3 from "d3";
     import G from "./lib/G.svelte";
     import Settings from "./lib/Settings.svelte";
+    import CreateEnt from "./lib/CreateEnt.svelte";
+    import DeleteEnt from "./lib/DeleteEnt.svelte";
 
     // maybe have "artifical links" stored in localstorage either in its own or maybe better to use storedDirectories but change it to an object
     let bgUrl = localStorage.getItem("bgUrl") ? JSON.parse(localStorage.getItem("bgUrl")) : "";
@@ -15,6 +17,7 @@
     // god forgive me for this one liner
     let pinned = localStorage.getItem("pinned") ? JSON.parse(localStorage.getItem("pinned")) : storedDirectories[0].nickname ? storedDirectories[0].nickname : '';
 
+    // global variable between components
     let pL;
     pathLimit.subscribe(value => {
         pL = value;
@@ -45,6 +48,7 @@
     let addDirectoryDialog;
     let removeDirectoryDialog;
 
+    // d3 related
     let paths = ["welcome, create a directory^"]; // main path array, everything tracks back to this
     let pathTmp = []; // to be able to go back to the original paths when done with searching
     let pathReal = [];
@@ -53,6 +57,13 @@
     let height = 775;
     let recWidth = 60;
     let recHeight = 40;
+
+    // context menu
+    let showMenu = false;
+    let mousePos = {x: 0, y: 0};
+    let menuDi = {w: 0, h: 0};
+    let browserDi = {w: 0, h: 0};
+    let menuItems = [];
 
     async function handleLoadDirectory(homeDirectory) {
         let received =  await invoke("load_directory", {directory: homeDirectory, userIgnores: ig});
@@ -172,6 +183,176 @@
         }, 300);
     }
 
+    // start of context menu
+    const handleContextMenu = async (e) => {
+        let directory = e.target.getAttribute("data-directory") ? e.target.getAttribute("data-directory") : "";
+        let filename = e.target.getAttribute("data-filename") ? e.target.getAttribute("data-filename") : "";
+
+        showMenu = true;
+        browserDi = {
+            w: window.innerWidth,
+            h: window.innerHeight
+        }
+
+        mousePos = {
+            x: e.clientX,
+            y: e.clientY
+        }
+
+        if (browserDi.h - mousePos.y < menuDi.h) mousePos.y = mousePos.y - menuDi.h;
+        if (browserDi.w - mousePos.x < menuDi.w) mousePos.x = mousePos.x - menuDi.w;
+        
+        // need to make these functions for the context menu buttons - otherwise all these will run on launch
+        const openCurrent = () => {
+            invoke("open_location", {location: directory, application: ""});
+        }
+
+        const openExplorer = () => {
+            invoke("open_location", {location: directory, application: "explorer"});
+        }
+
+        const openTerm = () => {
+            invoke("open_location", {location: directory, application: "term"});
+        }
+
+        const createEntity = () => {
+            createORDelDir.set(directory);
+            hideCreateEnt.set(false);
+        }
+
+        const deleteEntity = () => {
+            createORDelDir.set(directory);
+            hideDeleteEnt.set(false);
+        }
+
+        const showSettings = () => {
+            hideSettings.set(false);
+        }
+
+        const showAddDirDialog = () => {
+            addDirectoryDialog.showModal();
+        }
+
+        const showRemoveDirDialog = () => {
+            removeDirectoryDialog.showModal();
+        }
+
+        const showProperties = () => {
+            handleContext(directory, filename);
+        }
+
+        if (directory == "") {
+            menuItems = [
+                {
+                    "title": "add master directory",
+                    "onclick": showAddDirDialog,
+                    "class": ""
+                },
+                {
+                    "title": "remove master directory",
+                    "onclick": showRemoveDirDialog,
+                    "class": "caution"
+                },
+                {
+                    "title": "hr"
+                },
+                {
+                    "title": "settings",
+                    "onclick": showSettings,
+                    "class": ""
+                },
+            ];
+        } else if (directory.lastIndexOf(".") == -1 || directory.lastIndexOf(".") == 0) {
+            menuItems = [
+                {
+                    "title": "open",
+                    "onclick": openCurrent,
+                    "class": ""
+                },
+                {
+                    "title": "hr"
+                },
+                {
+                    "title": "open with explorer",
+                    "onclick": openExplorer,
+                    "class": ""
+                },
+                {
+                    "title": "open with terminal",
+                    "onclick": openTerm,
+                    "class": ""
+
+                },
+                {
+                    "title": "hr"
+                },
+                {
+                    "title": "create folder or file",
+                    "onclick": createEntity,
+                    "class": ""
+                },
+                {
+                    "title": "delete",
+                    "onclick": deleteEntity,
+                    "class": "caution"
+                },
+                {
+                    "title": "hr"
+                },
+                {
+                    "title": "properties",
+                    "onclick": showProperties,
+                    "class": ""
+                }
+            ]
+        } else {
+            menuItems = [
+                {
+                    "title": "open",
+                    "onclick": openCurrent,
+                    "class": ""
+                },
+                {
+                    "title": "hr"
+                },
+                {
+                    "title": "open with explorer",
+                    "onclick": openExplorer,
+                    "class": ""
+                },
+                {
+                    "title": "open with terminal",
+                    "onclick": openTerm,
+                    "class": ""
+                },
+                {
+                    "title": "hr"
+                },
+                {
+                    "title": "delete",
+                    "onclick": deleteEntity,
+                    "class": "caution"
+                },
+                {
+                    "title": "hr"
+                },
+                {
+                    "title": "properties",
+                    "onclick": showProperties,
+                    "class": ""
+                }
+            ]
+        }
+    }
+
+    const getContextMenuDi = (node) => {
+        menuDi = {
+            w: node.offsetWidth,
+            h: node.offsetHeight
+        };
+    }
+    // end of context menu
+
     listen('refresh', () => {
         handleLoadDirectory(homeDirectory);
     });
@@ -225,10 +406,10 @@
             </select>
         </li>
         <li>
-            <button on:click={addDirectoryDialog.showModal()} title="add parent directory">+</button>
+            <button class="caution" on:click={removeDirectoryDialog.showModal()} title="remove parent directory">-</button>
         </li>
         <li>
-            <button class="caution" on:click={removeDirectoryDialog.showModal()} title="remove parent directory">-</button>
+            <button on:click={addDirectoryDialog.showModal()} title="add parent directory">+</button>
         </li>
         <li style="float: right; right: 0;">
             <input type="text" id="search" spellcheck="false" placeholder="search" bind:value={searchValue} on:keydown={handleSearchBar}/>
@@ -246,7 +427,8 @@
         <li style="float: right; right: 0;">
             <button title="line">
                 <svg width="15px" height="15px" viewBox="0 0 20 20" fill="none" stroke="#cfcfcf" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="0" y1="0" x2="200" y2="200"  stroke-width="1.5"/>
+                    <!-- <line x1="0" y1="0" x2="200" y2="200" stroke-width="1.5"/> -->
+                    <path d="M0 0 L200 200 Z" stroke-width="1.5"></path>
                 </svg>
             </button>
         </li>
@@ -285,48 +467,50 @@
         </form>
     </dialog>
     <Settings {storedDirectories} {bgUrl} {bgColor} {pinned}/>
+    <CreateEnt />
+    <DeleteEnt />
 
     <!-- refactor this, remove repeating code, maybe put some of it inside the G.svelte file -->
     <svg style="margin-top: 3.5em;" width={width} height={height}  viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
         {#each root.descendants() as node}
             {@const short = shortenPath(node.id)}
             {#if node.id.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
-                <G id={short} on:sglclick={async () => await invoke("open_location", {location: node.data, application: ""})} on:dblclick={async () => await handleContext(node.data, short)}>
+                <G titleId={node.data} on:sglclick={_ => alert("clicked")} on:dblclick={async () => invoke("open_location", {location: node.data, application: ""})}>
                     <svg id={node.id} class="node" x={node.x - (recWidth / 2)} y={node.y} xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve" width={recWidth} height={recHeight} fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                         <g id="SVGRepo_iconCarrier">
-                            <path id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
+                            <path data-directory={node.data} data-filename={short} id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
                             <g>
-                                <path id="SVGCleanerId_0_1_" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
+                                <path data-directory={node.data} data-filename={short} id="SVGCleanerId_0_1_" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
                             </g>
-                            <path style="fill:#EFF2FA;" d="M485.517,70.621H26.483c-4.875,0-8.828,3.953-8.828,8.828v44.138h476.69V79.448 C494.345,74.573,490.392,70.621,485.517,70.621z"></path>
-                            <rect x="17.655" y="105.931" style="fill:#E1E6F2;" width="476.69" height="17.655"></rect>
-                            <path style="fill:#FFD782;" d="M494.345,88.276H217.318c-3.343,0-6.4,1.889-7.895,4.879l-10.336,20.671 c-2.99,5.982-9.105,9.76-15.791,9.76H55.05c-6.687,0-12.801-3.778-15.791-9.76L28.922,93.155c-1.495-2.99-4.552-4.879-7.895-4.879 h-3.372C7.904,88.276,0,96.18,0,105.931v335.448c0,9.751,7.904,17.655,17.655,17.655h476.69c9.751,0,17.655-7.904,17.655-17.655 V105.931C512,96.18,504.096,88.276,494.345,88.276z"></path>
-                            <path style="fill:#FFC36E;" d="M485.517,441.379H26.483c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h459.034c4.875,0,8.828,3.953,8.828,8.828l0,0C494.345,437.427,490.392,441.379,485.517,441.379z"></path>
-                            <path style="fill:#EFF2FA;" d="M326.621,220.69h132.414c4.875,0,8.828-3.953,8.828-8.828v-70.621c0-4.875-3.953-8.828-8.828-8.828 H326.621c-4.875,0-8.828,3.953-8.828,8.828v70.621C317.793,216.737,321.746,220.69,326.621,220.69z"></path>
-                            <path style="fill:#C7CFE2;" d="M441.379,167.724h-97.103c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h97.103c4.875,0,8.828,3.953,8.828,8.828l0,0C450.207,163.772,446.254,167.724,441.379,167.724z"></path>
-                            <path style="fill:#D7DEED;" d="M441.379,203.034h-97.103c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h97.103c4.875,0,8.828,3.953,8.828,8.828l0,0C450.207,199.082,446.254,203.034,441.379,203.034z"></path>
+                            <path data-directory={node.data} data-filename={short} style="fill:#EFF2FA;" d="M485.517,70.621H26.483c-4.875,0-8.828,3.953-8.828,8.828v44.138h476.69V79.448 C494.345,74.573,490.392,70.621,485.517,70.621z"></path>
+                            <rect data-directory={node.data} data-filename={short} x="17.655" y="105.931" style="fill:#E1E6F2;" width="476.69" height="17.655"></rect>
+                            <path data-directory={node.data} data-filename={short} style="fill:#FFD782;" d="M494.345,88.276H217.318c-3.343,0-6.4,1.889-7.895,4.879l-10.336,20.671 c-2.99,5.982-9.105,9.76-15.791,9.76H55.05c-6.687,0-12.801-3.778-15.791-9.76L28.922,93.155c-1.495-2.99-4.552-4.879-7.895-4.879 h-3.372C7.904,88.276,0,96.18,0,105.931v335.448c0,9.751,7.904,17.655,17.655,17.655h476.69c9.751,0,17.655-7.904,17.655-17.655 V105.931C512,96.18,504.096,88.276,494.345,88.276z"></path>
+                            <path data-directory={node.data} data-filename={short} style="fill:#FFC36E;" d="M485.517,441.379H26.483c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h459.034c4.875,0,8.828,3.953,8.828,8.828l0,0C494.345,437.427,490.392,441.379,485.517,441.379z"></path>
+                            <path data-directory={node.data} data-filename={short} style="fill:#EFF2FA;" d="M326.621,220.69h132.414c4.875,0,8.828-3.953,8.828-8.828v-70.621c0-4.875-3.953-8.828-8.828-8.828 H326.621c-4.875,0-8.828,3.953-8.828,8.828v70.621C317.793,216.737,321.746,220.69,326.621,220.69z"></path>
+                            <path data-directory={node.data} data-filename={short} style="fill:#C7CFE2;" d="M441.379,167.724h-97.103c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h97.103c4.875,0,8.828,3.953,8.828,8.828l0,0C450.207,163.772,446.254,167.724,441.379,167.724z"></path>
+                            <path data-directory={node.data} data-filename={short} style="fill:#D7DEED;" d="M441.379,203.034h-97.103c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h97.103c4.875,0,8.828,3.953,8.828,8.828l0,0C450.207,199.082,446.254,203.034,441.379,203.034z"></path>
                         </g>
                     </svg>
                 </G>
             {:else}
-                <G id={short} on:sglclick={async () => await invoke("open_location", {location: node.data, application: ""})} on:dblclick={async () => await handleContext(node.data, short)}>
+                <G titleId={node.data} on:sglclick={_ => alert("clicked")} on:dblclick={async () => invoke("open_location", {location: node.data, application: ""})}>
                     <svg id={node.id} class="node" x={node.x - (recHeight / 2)} y={node.y - 10} xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width={recHeight} height={recWidth} viewBox="0 0 64 64" xml:space="preserve" fill="#000000">
                         <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                         <g id="SVGRepo_iconCarrier">
                             <g>
                                 <g>
-                                    <polygon fill="#cfcfcf" points="46,3.414 46,14 56.586,14 "></polygon>
-                                    <path fill="#cfcfcf" d="M45,16c-0.553,0-1-0.447-1-1V2H8C6.896,2,6,2.896,6,4v56c0,1.104,0.896,2,2,2h48c1.104,0,2-0.896,2-2V16 H45z"></path>
+                                    <polygon data-directory={node.data} data-filename={short} fill="#cfcfcf" points="46,3.414 46,14 56.586,14 "></polygon>
+                                    <path data-directory={node.data} data-filename={short} fill="#cfcfcf" d="M45,16c-0.553,0-1-0.447-1-1V2H8C6.896,2,6,2.896,6,4v56c0,1.104,0.896,2,2,2h48c1.104,0,2-0.896,2-2V16 H45z"></path>
                                 </g>
-                                <path fill="#394240" d="M14,26c0,0.553,0.447,1,1,1h34c0.553,0,1-0.447,1-1s-0.447-1-1-1H15C14.447,25,14,25.447,14,26z"></path>
-                                <path fill="#394240" d="M49,37H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,37,49,37z"></path>
-                                <path fill="#394240" d="M49,43H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,43,49,43z"></path>
-                                <path fill="#394240" d="M49,49H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,49,49,49z"></path>
-                                <path fill="#394240" d="M49,31H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,31,49,31z"></path>
-                                <path fill="#394240" d="M15,20h16c0.553,0,1-0.447,1-1s-0.447-1-1-1H15c-0.553,0-1,0.447-1,1S14.447,20,15,20z"></path>
-                                <path fill="#394240" d="M59.706,14.292L45.708,0.294C45.527,0.112,45.277,0,45,0H8C5.789,0,4,1.789,4,4v56c0,2.211,1.789,4,4,4h48 c2.211,0,4-1.789,4-4V15C60,14.723,59.888,14.473,59.706,14.292z M46,3.414L56.586,14H46V3.414z M58,60c0,1.104-0.896,2-2,2H8 c-1.104,0-2-0.896-2-2V4c0-1.104,0.896-2,2-2h36v13c0,0.553,0.447,1,1,1h13V60z"></path>
-                                <polygon opacity="0.15" fill="#231F20" points="46,3.414 56.586,14 46,14 "></polygon>
+                                <path data-directory={node.data} data-filename={short} fill="#394240" d="M14,26c0,0.553,0.447,1,1,1h34c0.553,0,1-0.447,1-1s-0.447-1-1-1H15C14.447,25,14,25.447,14,26z"></path>
+                                <path data-directory={node.data} data-filename={short} fill="#394240" d="M49,37H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,37,49,37z"></path>
+                                <path data-directory={node.data} data-filename={short} fill="#394240" d="M49,43H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,43,49,43z"></path>
+                                <path data-directory={node.data} data-filename={short} fill="#394240" d="M49,49H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,49,49,49z"></path>
+                                <path data-directory={node.data} data-filename={short} fill="#394240" d="M49,31H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,31,49,31z"></path>
+                                <path data-directory={node.data} data-filename={short} fill="#394240" d="M15,20h16c0.553,0,1-0.447,1-1s-0.447-1-1-1H15c-0.553,0-1,0.447-1,1S14.447,20,15,20z"></path>
+                                <path data-directory={node.data} data-filename={short} fill="#394240" d="M59.706,14.292L45.708,0.294C45.527,0.112,45.277,0,45,0H8C5.789,0,4,1.789,4,4v56c0,2.211,1.789,4,4,4h48 c2.211,0,4-1.789,4-4V15C60,14.723,59.888,14.473,59.706,14.292z M46,3.414L56.586,14H46V3.414z M58,60c0,1.104-0.896,2-2,2H8 c-1.104,0-2-0.896-2-2V4c0-1.104,0.896-2,2-2h36v13c0,0.553,0.447,1,1,1h13V60z"></path>
+                                <polygon data-directory={node.data} data-filename={short} opacity="0.15" fill="#231F20" points="46,3.414 56.586,14 46,14 "></polygon>
                             </g>
                         </g>
                     </svg>
@@ -337,10 +521,57 @@
             <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={lC} stroke-width="2"></line>
         {/each}
     </svg>
+
+    {#if showMenu}
+        <nav use:getContextMenuDi style="position: absolute; top:{mousePos.y}px; left:{mousePos.x}px">
+            <div class="navbar">
+                {#each menuItems as item}
+                    {#if item.title == "hr"}
+                        <hr>
+                    {:else}
+                        <button class={item.class} on:click={item.onclick}>{item.title}</button>
+                    {/if}
+                {/each}
+            </div>
+        </nav>
+    {/if}
 </main>
+
+<svelte:window on:contextmenu|preventDefault={handleContextMenu} on:click={_ => showMenu = false} />
 
 <style>
     .node {
         cursor: pointer;
+    }
+
+    .navbar {
+        display: inline-flex;
+        border: 1px #5b5b5b solid;
+        background-color: #202020;
+        border-radius: 4px;
+        overflow: hidden;
+        flex-direction: column;
+    }
+
+    .navbar button {
+        background-color: transparent;
+        border: none;
+        border-radius: 2px;
+        box-shadow: none;
+        text-align: left;
+    }
+
+    .navbar button:hover {
+        background-color: #396cd8;
+        cursor: auto;
+    }
+
+    .navbar button.caution:hover {
+        background-color: #e01141;
+    }
+
+    .navbar hr {
+        height: 1px;
+        margin: 0;
     }
 </style>

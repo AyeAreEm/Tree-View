@@ -136,14 +136,13 @@
         const {emit, listen} = window.__TAURI__.event;
 
         let directoryLocation = "";
-        let isDir;
 
         listen('properties', (e) => {
             const units = ["bytes", "KB", "MB", "GB", "TB"]
 
             let size;
             directoryLocation = e.payload.location;
-            isDir = e.payload.is_directory;
+            let isDir = e.payload.is_directory;
 
             let i = 0, n = parseInt(e.payload.length, 10) || 0;
 
@@ -181,22 +180,17 @@
             let inp = document.getElementById("createLocation");
             let location = "";
 
-            if (navigator.platform != "Win32") {
-                location = `${directoryLocation}/${inp.value}`;
-            } else {
-                location = `${directoryLocation}\\${inp.value}`;
-            }
+            if (navigator.platform != "Win32") location = `${directoryLocation}/${inp.value}`;
+            else location = `${directoryLocation}\\${inp.value}`;
 
-            if (!location.endsWith("/") && !location.includes(".")) {
-                location = `${location}.txt`;
-            }
+            if (!location.endsWith("/") && !location.includes(".")) location = `${location}.txt`;
 
             invoke("create_location", {location})
                 .then(res => {
                     location = location.endsWith("/") ? location.substring(0, location.length - 1) : location;
 
                     if (res == 1) {
-                        alert("problem with creating the entity");
+                        alert("problem with creating entity");
                         return;
                     }
 
@@ -209,9 +203,9 @@
         })
 
         function removeLocation() {
-            invoke("remove_location", {location: directoryLocation, isDir})
-                .then(res => {
-                    if (res == 1) {
+            invoke("remove_location", {location: directoryLocation})
+                .then((isDir, success) => {
+                    if (success == 1) {
                         alert("error occured when deleting. ensure no program is currently using it.");
                         return;
                     }

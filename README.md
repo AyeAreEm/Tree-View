@@ -1,5 +1,6 @@
 # Tree View
 Currently in pre-alpha
+
 Testing on Windows 10 and macOs Ventura - no guarantees for Linux
 
 be wary of Directory Man!
@@ -22,6 +23,10 @@ updated ui:
 - ✅ Option to open directory in terminal
 - ✅ Remove a file or folder
 - ✅ Add a new file or folder
+- Copy file or folder?
+- Paste file or folder?
+- Rename file or folder?
+- Tags for quicker searches?
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - [Settings Section](#settings-section) 
 
@@ -48,9 +53,8 @@ This project has not been tested in its build version and is not recommended unt
 - Load it by clicking on the selection options - top left
 
 ### File Manipulation
-- Click on the file / folder once to open it in its respective app
-- Double click to get its properties- size, name, location, options to open in the system file explorer and in the terminal, etc.
-- Delete a file / folder by clicking on the delete button icon in the properties window. it will prompt you to confirm (note: unlike removing a master directory, this does <b>delete</b> the item.)
+- Double click on the file / folder once to open it in its respective app
+- Right click for more functions (open, open w/ explorer & terminal, create & delete files/folders, add & remove master directories, properties, settings)
 
 ### Tips / Hints
 - Hover over files / folders to see their name
@@ -66,7 +70,7 @@ This project has not been tested in its build version and is not recommended unt
 - Hide specific folders option (globally - doesn't render items but still searchable)
 - Ignore specific folders option (globally - doesn't load items at all)
 
-- Icon options? (might be to much of a hassle)
+- Icon options? (might be too much of a hassle)
 
 ---
 

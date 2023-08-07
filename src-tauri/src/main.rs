@@ -195,16 +195,22 @@ fn create_location(location: String) -> i8 {
 }
 
 #[tauri::command]
-fn remove_location(location: String, is_dir: bool) -> i8 {
-    if is_dir {
+fn remove_location(location: String) -> (bool, i8) {
+    let metadata_result = fs::metadata(location.clone());
+    let metadata = match metadata_result {
+        Ok(metadata) => metadata,
+        Err(_) => return (false, 1),
+    };
+
+    if metadata.is_dir() {
         match fs::remove_dir_all(location) {
-            Ok(_) => 0,
-            Err(_) => 1,
+            Ok(_) => (metadata.is_dir(), 0),
+            Err(_) => (false, 1),
         }
     } else {
         match fs::remove_file(location) {
-            Ok(_) => 0,
-            Err(_) => 1,
+            Ok(_) => (metadata.is_dir(), 0),
+            Err(_) => (false, 1),
         }
     }
 }
