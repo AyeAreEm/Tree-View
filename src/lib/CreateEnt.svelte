@@ -35,6 +35,7 @@
 
                 createLocation = "";
                 createEntDialog.close();
+                if (location.endsWith("/")) location = location.slice(0, -1);
                 emit("refresh-add", {
                     added: location
                 });

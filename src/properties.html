@@ -196,6 +196,8 @@
 
                     inp.value = "";
                     document.getElementById('createDialog').close();
+
+                    if (location.endsWith("/")) location = location.slice(0, -1);
                     emit("refresh-add", {
                         added: location
                     });
