@@ -100,6 +100,7 @@
         pathLimit.set(selectedLimit);
 
         localStorage.setItem("ignores", JSON.stringify(ig));
+        localStorage.setItem("hides", JSON.stringify(hI));
 
         emit("refresh");
         settingsDialog.close();

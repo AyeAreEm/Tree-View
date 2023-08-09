@@ -96,7 +96,7 @@ async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
         tauri::WindowUrl::App("../../src/properties.html".into())
     ).build().unwrap();
 
-    new_window.set_size(Size::Logical(tauri::LogicalSize { width: 350.0, height: 460.0 })).unwrap();
+    new_window.set_size(Size::Logical(tauri::LogicalSize { width: 350.0, height: 490.0 })).unwrap();
     new_window.set_minimizable(false).unwrap();
     new_window.set_title(format!("{filename} | Properties").as_str()).unwrap();
 }
