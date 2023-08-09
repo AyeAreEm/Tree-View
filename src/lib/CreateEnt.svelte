@@ -14,28 +14,19 @@
     })
 
     const createEnt = () => {
-        let location = "";
-
-        // navigator.userAgent.search("Mac") !== -1
-        if (navigator.platform != "Win32") location = `${directory}/${createLocation}`;
-        else location = `${directory}\\${createLocation}`;
-
-        if (!location.endsWith("/") && !location.includes(".")) location = `${location}.txt`;
-
-        invoke("create_location", {location})
-            .then(res => {
-                if (res == "1") {
+        invoke("create_location", {directory, filename: createLocation})
+            .then(([path, success]) => {
+                if (success == 1) {
                     alert("problem with creating entity");
                     return;
                 }
 
+                emit("refresh-add", {
+                    added: path 
+                });
                 createLocation = "";
                 createEntDialog.close();
-                if (location.endsWith("/")) location = location.slice(0, -1);
-                emit("refresh-add", {
-                    added: location
-                });
-            })
+            });
     }
 
     onMount(() => {

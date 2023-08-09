@@ -26,14 +26,9 @@
             return;
         }
 
-        let renamedLocation = "";
-        if (navigator.platform != "Win32") renamedLocation = `${directory.replace(`/${filename}`, '')}/${renameLocation}`;
-        else {
-            renamedLocation = `${directory.replace(`\\${filename}`, '')}\\${renameLocation}`;
-        }
-
-        invoke('rename_location', {location: directory, newLocation: renamedLocation})
-            .then((isDir, success) => {
+        invoke('rename_location', {location: directory, newLocation: renameLocation, filename})
+            .then(([isDir, renamedLocation, success]) => {
+                console.log(isDir)
                 if (success == 1) {
                     alert("error occured when renaming this item.");
                 }

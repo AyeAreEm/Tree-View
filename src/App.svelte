@@ -591,6 +591,7 @@
         border-radius: 2px;
         box-shadow: none;
         text-align: left;
+        font-size: 15px;
     }
 
     .navbar button:hover {

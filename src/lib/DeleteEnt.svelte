@@ -14,7 +14,7 @@
 
     const deleteEnt = () => {
         invoke("remove_location", {location: directory})
-            .then((isDir, success) => {
+            .then(([isDir, success]) => {
                 if (success == 1) {
                     alert("error occured when deleting. ensure no program is currently using it.");
                     return;

@@ -174,37 +174,57 @@ fn open_location(location: String, application: String) {
 }
 
 #[tauri::command]
-fn rename_location(location: String, new_location: String) -> (bool, i8) {
+fn rename_location(location: String, new_location: String, filename: &str) -> (bool, String, i8) {
     let metadata_result = fs::metadata(location.clone());
     let metadata = match metadata_result {
         Ok(metadata) => metadata,
-        Err(_) => return (false, 1)
+        Err(_) => return (false, "".to_string(), 1)
     };
 
-    match fs::rename(location.clone(), new_location.clone()) {
-        Ok(_) => (metadata.is_dir(), 0),
-        Err(_) => (false, 1),
+    let new = match env::consts::OS {
+        "windows" => {
+            let path = format!("\\{}", filename);
+            format!("{}\\{}", location.replace(&path, ""), new_location)
+        },
+        _ => {
+            let path = format!("/{}", filename);
+            format!("{}/{}", location.replace(&path, ""), new_location)
+        }
+    };
+
+    match fs::rename(location, new.clone()) {
+        Ok(_) => (metadata.is_dir(), new, 0),
+        Err(_) => (false, "".to_string(), 1),
     }
 }
 
 #[tauri::command]
-fn create_location(location: String) -> i8 {
+fn create_location(directory: String, mut filename: String) -> (String, i8) {
+    filename = if !filename.ends_with("/") && !filename.contains(".") {
+        format!("{}.txt", filename)
+    } else {
+        filename
+    };
+
+    let mut location = match env::consts::OS {
+        "windows" => format!("{}\\{}", directory, filename),
+        _ => format!("{}/{}", directory, filename)
+    };
+
     if location.ends_with("/") {
-        match fs::create_dir(location) {
-            Ok(_) => return 0,
-            Err(_) => {
-                println!("couldn't create entity");
-                return 1
-            }, 
+        location.pop();
+        return match fs::create_dir(location.clone()) {
+            Ok(_) => {
+                println!("{}", location);
+                (location, 0)
+            },
+            Err(_) => ("".to_string(), 1), 
         }
     }
 
-    match fs::File::create(location) {
-        Ok(_) => return 0,
-        Err(_) => {
-            println!("couldn't create entity");
-            return 1
-        },
+    match fs::File::create(location.clone()) {
+        Ok(_) => (location, 0),
+        Err(_) => ("".to_string(), 1),
     }
 }
 
