@@ -174,6 +174,20 @@ fn open_location(location: String, application: String) {
 }
 
 #[tauri::command]
+fn rename_location(location: String, new_location: String) -> (bool, i8) {
+    let metadata_result = fs::metadata(location.clone());
+    let metadata = match metadata_result {
+        Ok(metadata) => metadata,
+        Err(_) => return (false, 1)
+    };
+
+    match fs::rename(location.clone(), new_location.clone()) {
+        Ok(_) => (metadata.is_dir(), 0),
+        Err(_) => (false, 1),
+    }
+}
+
+#[tauri::command]
 fn create_location(location: String) -> i8 {
     if location.ends_with("/") {
         match fs::create_dir(location) {
@@ -217,7 +231,7 @@ fn remove_location(location: String) -> (bool, i8) {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, open_location, create_location, remove_location])
+        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, open_location, rename_location, create_location, remove_location])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

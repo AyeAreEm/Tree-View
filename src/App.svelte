@@ -1,5 +1,5 @@
 <script>
-    import { hideSettings, hideCreateEnt, hideDeleteEnt, createORDelDir, pathLimit, ignores, hides, lineColor } from "./stores";
+    import { hideSettings, hideRename, hideCreateEnt, hideDeleteEnt, pathLimit, ignores, hides, lineColor } from "./stores";
     import { onMount } from "svelte";
     import { invoke } from '@tauri-apps/api/tauri';
     import { listen } from '@tauri-apps/api/event'
@@ -9,6 +9,7 @@
     import Settings from "./lib/Settings.svelte";
     import CreateEnt from "./lib/CreateEnt.svelte";
     import DeleteEnt from "./lib/DeleteEnt.svelte";
+    import Rename from "./lib/Rename.svelte";
 
     // maybe have "artifical links" stored in localstorage either in its own or maybe better to use storedDirectories but change it to an object
     let bgUrl = localStorage.getItem("bgUrl") ? JSON.parse(localStorage.getItem("bgUrl")) : "";
@@ -41,6 +42,9 @@
     document.body.style.backgroundImage = `url('${bgUrl}')`;
     document.body.style.backgroundColor = bgColor;
 
+    let globalDir = "";
+    let globalFilename = "";
+
     let homeDirectory; // selected storedDirectory
     let searchValue; // search bar
     
@@ -70,13 +74,13 @@
         pathTmp = [];
 
         pathReal = received;
-        paths = pathReal.slice(0, pL);
-
+        paths = pathReal;
         if (hI.length !== 0) {
-            paths = paths.filter(obj => {
+            paths = pathReal.filter(obj => {
                 return !obj.includes(hI);
             })
         }
+        paths = paths.slice(0, pL);
     }
 
     onMount(async () => {
@@ -188,6 +192,7 @@
         let directory = e.target.getAttribute("data-directory") ? e.target.getAttribute("data-directory") : "";
         let filename = e.target.getAttribute("data-filename") ? e.target.getAttribute("data-filename") : "";
 
+
         showMenu = true;
         browserDi = {
             w: window.innerWidth,
@@ -216,17 +221,23 @@
         }
 
         const createEntity = () => {
-            createORDelDir.set(directory);
+            globalDir = directory;
             hideCreateEnt.set(false);
         }
 
         const deleteEntity = () => {
-            createORDelDir.set(directory);
+            globalDir = directory;
             hideDeleteEnt.set(false);
         }
 
         const showSettings = () => {
             hideSettings.set(false);
+        }
+
+        const showRename = () => {
+            globalFilename = filename;
+            globalDir = directory;
+            hideRename.set(false);
         }
 
         const showAddDirDialog = () => {
@@ -241,106 +252,101 @@
             handleContext(directory, filename);
         }
 
+        let listItems = [
+            {
+                "title": "hr"
+            },
+            {
+                "title": "add master directory",
+                "onclick": showAddDirDialog,
+                "class": ""
+            },
+            {
+                "title": "remove master directory",
+                "onclick": showRemoveDirDialog,
+                "class": "caution"
+            },
+            {
+                "title": "open",
+                "onclick": openCurrent,
+                "class": ""
+            },
+            {
+                "title": "open with explorer",
+                "onclick": openExplorer,
+                "class": ""
+            },
+            {
+                "title": "open with terminal",
+                "onclick": openTerm,
+                "class": ""
+            },
+            {
+                "title": "rename",
+                "onclick": showRename,
+                "class": ""
+            },
+            {
+                "title": "create folder or file",
+                "onclick": createEntity,
+                "class": ""
+            },
+            {
+                "title": "delete",
+                "onclick": deleteEntity,
+                "class": "caution"
+            },
+            {
+                "title": "properties",
+                "onclick": showProperties,
+                "class": ""
+            },
+            {
+                "title": "settings",
+                "onclick": showSettings,
+                "class": ""
+            },
+        ];
+
         if (directory == "") {
+            menuItems = [listItems[1], listItems[2], listItems[0], listItems[listItems.length - 1]];
+        } else if (homeDirectory == directory) {
             menuItems = [
-                {
-                    "title": "add master directory",
-                    "onclick": showAddDirDialog,
-                    "class": ""
-                },
-                {
-                    "title": "remove master directory",
-                    "onclick": showRemoveDirDialog,
-                    "class": "caution"
-                },
-                {
-                    "title": "hr"
-                },
-                {
-                    "title": "settings",
-                    "onclick": showSettings,
-                    "class": ""
-                },
-            ];
+                listItems[3], // open
+                listItems[0], // hr
+                listItems[4], // open w/ explorer
+                listItems[5], // open w/ term
+                listItems[0],
+                listItems[7], // create
+                listItems[0],
+                listItems[9], // properties
+            ]
         } else if (directory.lastIndexOf(".") == -1 || directory.lastIndexOf(".") == 0) {
             menuItems = [
-                {
-                    "title": "open",
-                    "onclick": openCurrent,
-                    "class": ""
-                },
-                {
-                    "title": "hr"
-                },
-                {
-                    "title": "open with explorer",
-                    "onclick": openExplorer,
-                    "class": ""
-                },
-                {
-                    "title": "open with terminal",
-                    "onclick": openTerm,
-                    "class": ""
-
-                },
-                {
-                    "title": "hr"
-                },
-                {
-                    "title": "create folder or file",
-                    "onclick": createEntity,
-                    "class": ""
-                },
-                {
-                    "title": "delete",
-                    "onclick": deleteEntity,
-                    "class": "caution"
-                },
-                {
-                    "title": "hr"
-                },
-                {
-                    "title": "properties",
-                    "onclick": showProperties,
-                    "class": ""
-                }
+                listItems[3], // open
+                listItems[0], // hr
+                listItems[4], // open w/ explorer
+                listItems[5], // open w/ term
+                listItems[0],
+                listItems[6], // rename
+                listItems[0],
+                listItems[7], // create
+                listItems[8], // delete
+                listItems[0],
+                listItems[9], // properties
             ]
         } else {
             menuItems = [
-                {
-                    "title": "open",
-                    "onclick": openCurrent,
-                    "class": ""
-                },
-                {
-                    "title": "hr"
-                },
-                {
-                    "title": "open with explorer",
-                    "onclick": openExplorer,
-                    "class": ""
-                },
-                {
-                    "title": "open with terminal",
-                    "onclick": openTerm,
-                    "class": ""
-                },
-                {
-                    "title": "hr"
-                },
-                {
-                    "title": "delete",
-                    "onclick": deleteEntity,
-                    "class": "caution"
-                },
-                {
-                    "title": "hr"
-                },
-                {
-                    "title": "properties",
-                    "onclick": showProperties,
-                    "class": ""
-                }
+                listItems[3],
+                listItems[0],
+                listItems[4],
+                listItems[5],
+                listItems[0],
+                listItems[6],
+                listItems[0],
+                listItems[8],
+                listItems[0],
+                listItems[9],
             ]
         }
     }
@@ -357,18 +363,29 @@
         handleLoadDirectory(homeDirectory);
     });
 
-    listen('refresh-remove', async (event) => {
+    listen('refresh-rename', (event) => {
         if (event.payload.isDir) {
-            await handleLoadDirectory(homeDirectory);
+            handleLoadDirectory(homeDirectory);
             return;
         }
 
-        if (paths.length == 1) {
-            pathReal = pathReal.filter(obj => {
-                return obj !== event.payload.removed;
-            });
+        for (let i = 0; i < pathReal.length; i++) {
+            if (pathReal[i] == event.payload.before) {
+                pathReal[i] = event.payload.after;
+            }
+        }
 
-            paths = pathReal.slice(0, pL);
+        if (hI.length !== 0) {
+            paths = pathReal.filter(obj => {
+                return !obj.includes(hI);
+            })
+        }
+        paths = paths.slice(0, pL);
+    });
+
+    listen('refresh-remove', async (event) => {
+        if (event.payload.isDir) {
+            await handleLoadDirectory(homeDirectory);
             return;
         }
 
@@ -376,14 +393,28 @@
             return obj !== event.payload.removed;
         });
 
+        if (paths.length == 1) {
+            paths = pathReal.filter(obj => {
+                return !obj.includes(hI);
+            });
+
+            paths = paths.slice(0, pL);
+            return;
+        }
+        
         paths = paths.filter(obj => {
             return obj !== event.payload.removed;
         });
     });
 
     listen('refresh-add', (event) => {
-        pathReal = paths.concat([event.payload.added]);
-        paths = pathReal.slice(0, pL);
+        pathReal = pathReal.concat([event.payload.added]);
+        if (hI.length !== 0) {
+            paths = pathReal.filter(obj => {
+                return !obj.includes(hI);
+            })
+        }
+        paths = paths.slice(0, pL);
     });
 
     $: root = d3.stratify().path((d) => d)(paths);
@@ -445,8 +476,8 @@
             </svg>
         </button>
 
-        <p class="unselectable" unselectable="on" title="number of entities" style="position: absolute; bottom: 0; right: 0; margin: 0.5em; cursor: default;">
-            {paths.length == pathReal.length ? paths.length : pathReal.length} / {pL}
+        <p class="unselectable" unselectable="on" title="{pathReal.length} / {pL}" style="position: absolute; bottom: 0; right: 0; margin: 0.5em; cursor: default;">
+            {paths.length} / {pL}
         </p>
     </div>
 
@@ -467,8 +498,9 @@
         </form>
     </dialog>
     <Settings {storedDirectories} {bgUrl} {bgColor} {pinned}/>
-    <CreateEnt />
-    <DeleteEnt />
+    <CreateEnt directory={globalDir}/>
+    <DeleteEnt directory={globalDir}/>
+    <Rename directory={globalDir} filename={globalFilename}/>
 
     <!-- refactor this, remove repeating code, maybe put some of it inside the G.svelte file -->
     <svg style="margin-top: 3.5em;" width={width} height={height}  viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">

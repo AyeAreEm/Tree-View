@@ -1,28 +1,24 @@
 <script>
     import { invoke } from "@tauri-apps/api/tauri";
-    import { hideCreateEnt, createORDelDir } from "../stores";
+    import { hideCreateEnt } from "../stores";
     import { onMount } from "svelte";
     import { emit } from "@tauri-apps/api/event";
 
     let createEntDialog;
     let createLocation;
+    export let directory;
     
     let cE;
     hideCreateEnt.subscribe(value => {
         cE = value;
     })
 
-    let cDD;
-    createORDelDir.subscribe(value => {
-        cDD = value;
-    })
-
     const createEnt = () => {
         let location = "";
 
         // navigator.userAgent.search("Mac") !== -1
-        if (navigator.platform != "Win32") location = `${cDD}/${createLocation}`;
-        else location = `${cDD}\\${createLocation}`;
+        if (navigator.platform != "Win32") location = `${directory}/${createLocation}`;
+        else location = `${directory}\\${createLocation}`;
 
         if (!location.endsWith("/") && !location.includes(".")) location = `${location}.txt`;
 
@@ -56,8 +52,8 @@
 </script>
 
 <dialog bind:this={createEntDialog}>
+    <p style="color: white;">create file or folder (end with / for folder)</p>
     <form on:submit|preventDefault={createEnt}>
-        <p style="color: white;">create file or folder (end with / for folder)</p>
         <input bind:value={createLocation} spellcheck="false" type="text" placeholder="entity name" required/><br><br>
         <button type="button" on:click={_ => createEntDialog.close()}>cancel</button>
         <input type="submit" value="create" />

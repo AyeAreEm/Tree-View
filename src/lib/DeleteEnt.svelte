@@ -1,23 +1,19 @@
 <script>
     import { invoke } from "@tauri-apps/api/tauri";
-    import { hideDeleteEnt, createORDelDir } from "../stores";
+    import { hideDeleteEnt } from "../stores";
     import { onMount } from "svelte";
     import { emit } from "@tauri-apps/api/event";
 
     let deleteEntDialog;
+    export let directory;
     
     let cE;
     hideDeleteEnt.subscribe(value => {
         cE = value;
     })
 
-    let cDD;
-    createORDelDir.subscribe(value => {
-        cDD = value;
-    })
-
     const deleteEnt = () => {
-        invoke("remove_location", {location: cDD})
+        invoke("remove_location", {location: directory})
             .then((isDir, success) => {
                 if (success == 1) {
                     alert("error occured when deleting. ensure no program is currently using it.");
@@ -25,7 +21,7 @@
                 }
 
                 emit("refresh-remove", {
-                    removed: cDD,
+                    removed: directory,
                     isDir
                 });
             });

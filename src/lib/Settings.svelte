@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import { emit } from "@tauri-apps/api/event";
 
+    // fix issue with selects not having an item on load
     let settingsDialog;
     let selectedPin;
     let selectedLimit;
