@@ -214,10 +214,7 @@ fn create_location(directory: String, mut filename: String) -> (String, i8) {
     if location.ends_with("/") {
         location.pop();
         return match fs::create_dir(location.clone()) {
-            Ok(_) => {
-                println!("{}", location);
-                (location, 0)
-            },
+            Ok(_) => (location, 0),
             Err(_) => ("".to_string(), 1), 
         }
     }

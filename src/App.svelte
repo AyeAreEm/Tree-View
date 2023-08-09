@@ -252,6 +252,20 @@
             handleContext(directory, filename);
         }
 
+        const copyAndPaste = () => {
+            open({
+                multiple: false,
+                directory: true,
+                title: "choose a directory", 
+            }).then(res => {
+                if (!res) {
+                    return;
+                }
+
+                console.log(res)
+            })
+        }
+
         let listItems = [
             {
                 "title": "hr"
@@ -302,6 +316,11 @@
                 "class": ""
             },
             {
+                "title": "copy & paste",
+                "onclick": copyAndPaste,
+                "class": ""
+            },
+            {
                 "title": "settings",
                 "onclick": showSettings,
                 "class": ""
@@ -329,6 +348,7 @@
                 listItems[5], // open w/ term
                 listItems[0],
                 listItems[6], // rename
+                listItems[10], // copy
                 listItems[0],
                 listItems[7], // create
                 listItems[8], // delete
@@ -343,6 +363,7 @@
                 listItems[5],
                 listItems[0],
                 listItems[6],
+                listItems[10],
                 listItems[0],
                 listItems[8],
                 listItems[0],
@@ -425,7 +446,6 @@
 <main>
     <ul class="unselectable" unselectable="on">
         <li>
-            <!-- refactor this to drag and drop the options to pin them -->
             <select bind:value={homeDirectory} id="homeDirectory" title="choose directory" on:change={async () => await handleLoadDirectory(homeDirectory)}>
                 {#each storedDirectories as storedDirectory}
                     {#if storedDirectory.nickname == pinned}
@@ -455,14 +475,13 @@
                 </svg>
             </button>
         </li>
-        <li style="float: right; right: 0;">
+        <!-- <li style="float: right; right: 0;">
             <button title="line">
                 <svg width="15px" height="15px" viewBox="0 0 20 20" fill="none" stroke="#cfcfcf" stroke-linecap="round" stroke-linejoin="round">
-                    <!-- <line x1="0" y1="0" x2="200" y2="200" stroke-width="1.5"/> -->
                     <path d="M0 0 L200 200 Z" stroke-width="1.5"></path>
                 </svg>
             </button>
-        </li>
+        </li> -->
     </ul>
 
     <div style="position: fixed; bottom: 0; width: 100%;">
