@@ -24,8 +24,8 @@ updated ui:
 - ✅ Remove a file or folder
 - ✅ Add a new file or folder
 - ✅ Rename file or folder
-- Copy file or folder?
-- Paste file or folder?
+- ✅ Copy file or folder?
+- ✅ Paste file or folder?
 - Tags for quicker searches?
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - [Settings Section](#settings-section) 

@@ -2,7 +2,7 @@
     import { hideSettings, hideRename, hideCreateEnt, hideDeleteEnt, pathLimit, ignores, hides, lineColor } from "./stores";
     import { onMount } from "svelte";
     import { invoke } from '@tauri-apps/api/tauri';
-    import { listen } from '@tauri-apps/api/event'
+    import { emit, listen } from '@tauri-apps/api/event'
     import { open } from '@tauri-apps/api/dialog';
     import * as d3 from "d3";
     import G from "./lib/G.svelte";
@@ -262,8 +262,16 @@
                     return;
                 }
 
-                console.log(res)
-            })
+                invoke("copy_paste", {src: directory, to: res})
+                    .then(success => {
+                        if (success == 1) {
+                            alert("error occured when copying and pasting item");
+                        }
+
+                        emit("refresh");
+                    });
+                });
+
         }
 
         let listItems = [

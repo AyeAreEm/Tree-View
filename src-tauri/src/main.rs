@@ -3,10 +3,16 @@
 
 // really gotta work on the .unwrap()'s
 // should do actual error handling
+extern crate fs_extra;
 
 use std::env;
+// use std::path::PathBuf;
 use std::process::Command;
 use std::fs;
+// use std::io;
+
+use fs_extra::copy_items;
+use fs_extra::dir;
 use tauri::Size;
 use tauri::Window;
 use walkdir::WalkDir;
@@ -199,6 +205,26 @@ fn rename_location(location: String, new_location: String, filename: &str) -> (b
 }
 
 #[tauri::command]
+fn copy_paste(src: String, to: String) -> i8 {
+    let options = dir::CopyOptions::new();
+
+    let contents: Vec<_> = WalkDir::new(src)
+                .follow_links(true)
+                .into_iter()
+                .filter_map(|f| f.ok())
+                .map(|f| f.path().display().to_string())
+                .collect();
+
+    match copy_items(&contents, to, &options) {
+        Ok(_) => return 0,
+        Err(e) => match e.kind {
+            fs_extra::error::ErrorKind::AlreadyExists => return 0,
+            _ => return 1,
+        },
+    }
+}
+
+#[tauri::command]
 fn create_location(directory: String, mut filename: String) -> (String, i8) {
     filename = if !filename.ends_with("/") && !filename.contains(".") {
         format!("{}.txt", filename)
@@ -248,7 +274,7 @@ fn remove_location(location: String) -> (bool, i8) {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, open_location, rename_location, create_location, remove_location])
+        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, open_location, rename_location, create_location, remove_location, copy_paste])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
