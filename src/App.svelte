@@ -267,9 +267,13 @@
                             alert("error occured when copying and pasting item");
                         }
 
-                        emit("refresh");
+                        handleLoadDirectory(homeDirectory);
                     });
                 });
+        }
+
+        const reload = () => {
+            handleLoadDirectory(homeDirectory);
         }
 
         let listItems = [
@@ -327,6 +331,11 @@
                 "class": ""
             },
             {
+                "title": "refresh",
+                "onclick": reload,
+                "class": ""
+            },
+            {
                 "title": "settings",
                 "onclick": showSettings,
                 "class": ""
@@ -334,7 +343,14 @@
         ];
 
         if (directory == "") {
-            menuItems = [listItems[1], listItems[2], listItems[0], listItems[listItems.length - 1]];
+            menuItems = [
+                listItems[1],
+                listItems[2],
+                listItems[0],
+                listItems[11],
+                listItems[0],
+                listItems[listItems.length - 1]
+            ];
         } else if (homeDirectory == directory) {
             menuItems = [
                 listItems[3], // open
@@ -570,7 +586,7 @@
             {/if}
         {/each}
         {#each root.links() as link}
-            <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={lC} stroke-width="2"></line>
+            <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={lC} stroke-width="2"></line>
         {/each}
     </svg>
 
