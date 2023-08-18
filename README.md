@@ -1,4 +1,6 @@
 # Tree View
+Tree View is an individual oriented task management file explorer
+
 Currently in pre-alpha
 
 Testing on Windows 10 and macOs Ventura - no guarantees for Linux
@@ -32,6 +34,7 @@ customisation example:
 
 ## Todos
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
+- Create logo
 
 ---
 

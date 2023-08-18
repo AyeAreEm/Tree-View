@@ -544,7 +544,6 @@
     <DeleteEnt directory={globalDir}/>
     <Rename directory={globalDir} filename={globalFilename}/>
 
-    <!-- refactor this, remove repeating code, maybe put some of it inside the G.svelte file -->
     <svg style="margin-top: 3.5em;" width={width} height={height} viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
         {#each root.descendants() as node}
             {@const short = shortenPath(node.id)}
