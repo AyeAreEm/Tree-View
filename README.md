@@ -5,12 +5,12 @@ Testing on Windows 10 and macOs Ventura - no guarantees for Linux
 
 be wary of Directory Man!
 <p align="center">
-    <img src="./examples/directory-man.png" width=500/>
+    <img src="./examples/updated-directory-man.png" width=500/>
 </p>
 
-updated ui:
+customisation example:
 <p align="center">
-    <img src="./examples/default.png" width=500/>
+    <img src="./examples/background-image-example.png" width=500/>
 </p>
 
 ## Features
@@ -24,8 +24,8 @@ updated ui:
 - ✅ Remove a file or folder
 - ✅ Add a new file or folder
 - ✅ Rename file or folder
-- ✅ Copy file or folder?
-- ✅ Paste file or folder?
+- ✅ Copy file or folder
+- ✅ Paste file or folder
 - Tags for quicker searches?
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - [Settings Section](#settings-section) 
@@ -58,8 +58,8 @@ This project has not been tested in its build version and is not recommended unt
 
 ### Tips / Hints
 - Hover over files / folders to see their name
-- Search for files and folders with the name of them [note: all entities that has the search term in its path will be displayed]
 - There is a render cap of 50 items to prevent crammed UI, this can be changed in the settings section - althought not recommended. note that this does not affect the search functionality
+- The number of rendered items are displayed at the bottom right. Hover over to see the total number of actual items in directory. (shows the count of items including the hidden and ignored ones)
 - Shared folders can be set as master directories for team use
 
 ### Settings Section
@@ -101,6 +101,8 @@ Maybe just draw a line connecting them on the frontend and save it to localstora
 [Open](https://docs.rs/open/latest/open/) (Rust)
 
 [Rand](https://docs.rs/rand/latest/rand/) (Rust)
+
+[Fs_extra](https://docs.rs/fs_extra/latest/fs_extra/) (Rust)
 
 ### Use of WalkDir
 This is crate makes the nightmare of traversing a directory recursively incredibly easy
@@ -153,4 +155,13 @@ The reason for this is each window needs a unique label when it's created, so ra
 
 ```rust
 let rng = rand::thread_rng();
+```
+### Use of Fs_extra
+This crate adds more functionality to the fs and io stdlib. In particular, I need their copy_items function that recursively copies files/directories to another location
+
+```rust
+// contents is a vector of copy locations
+// to is a string pointing to the paste locaiton
+// honestly dk what options are, it's just what was in the docs
+copy_items(&contents, to, &options)
 ```
