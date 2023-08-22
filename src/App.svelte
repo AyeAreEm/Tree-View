@@ -2,7 +2,7 @@
     import { hideSettings, hideRename, hideCreateEnt, hideDeleteEnt, pathLimit, ignores, hides, lineColor } from "./stores";
     import { onMount } from "svelte";
     import { invoke } from '@tauri-apps/api/tauri';
-    import { emit, listen } from '@tauri-apps/api/event'
+    import { listen } from '@tauri-apps/api/event'
     import { open } from '@tauri-apps/api/dialog';
     import * as d3 from "d3";
     import G from "./lib/G.svelte";

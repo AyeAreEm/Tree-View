@@ -1,18 +1,20 @@
-# Tree View
-Tree View is an individual oriented task management file explorer
+<p align="center">
+    <img src="./images/tree-view-banner.png"/>
+</p>
 
-Currently in pre-alpha
+---
+Tree View is an individual oriented task management file explorer - currently in pre-alpha.
 
 Testing on Windows 10 and macOs Ventura - no guarantees for Linux
 
 be wary of Directory Man!
 <p align="center">
-    <img src="./examples/updated-directory-man.png" width=500/>
+    <img src="./images/updated-directory-man.png" width=500/>
 </p>
 
 customisation example:
 <p align="center">
-    <img src="./examples/background-image-example.png" width=500/>
+    <img src="./images/background-image-example.png" width=500/>
 </p>
 
 ## Features
