@@ -100,6 +100,11 @@ dialog {
     z-index: 10;
 }
 
+/* not sure if this should stay but keeping it for now */
+dialog[open] {
+    animation: fade-in 150ms cubic-bezier(0, 0, 0.2, 1);
+}
+
 input[type=color] {
     border: 1px solid transparent;
     border-radius: 2px;
@@ -119,4 +124,12 @@ hr {
 
 .node {
     cursor: pointer;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    } to {
+        opacity: 1;
+    }
 }
