@@ -30,6 +30,7 @@ customisation example:
 - ✅ Paste file or folder
 - Tags for quicker searches?
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
+- Horizontal Scroll between file tree, todo list, reminders, deadlines, issues, reports, etc?
 - [Settings Section](#settings-section) 
 
 ## Todos
