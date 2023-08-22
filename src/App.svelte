@@ -624,7 +624,7 @@
     {/if}
 </main>
 
-<svelte:window on:contextmenu={handleContextMenu} on:click={_ => showMenu = false} />
+<svelte:window on:contextmenu|preventDefault={handleContextMenu} on:click={_ => showMenu = false} />
 
 <style>
     .navbar {
