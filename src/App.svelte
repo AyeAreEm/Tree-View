@@ -68,6 +68,7 @@
     let menuDi = {w: 0, h: 0};
     let browserDi = {w: 0, h: 0};
     let menuItems = [];
+    let isLinking = 0;
 
     let popUp;
 
@@ -281,6 +282,16 @@
             handleLoadDirectory(homeDirectory);
         }
 
+        const startLink = () => {
+            alert("starting");
+            isLinking += 1;
+        }
+
+        const endLink = () => {
+            alert("ending");
+            isLinking = 0;
+        }
+
         let listItems = [
             {
                 "title": "hr"
@@ -341,6 +352,16 @@
                 "class": ""
             },
             {
+                "title": "link line",
+                "onclick": startLink,
+                "class": ""
+            },
+            {
+                "title": "end link",
+                "onclick": endLink,
+                "class": "caution"
+            },
+            {
                 "title": "settings",
                 "onclick": showSettings,
                 "class": ""
@@ -374,6 +395,8 @@
                 listItems[4], // open w/ explorer
                 listItems[5], // open w/ term
                 listItems[0],
+                isLinking == 0 ? listItems[12] : listItems[13],
+                listItems[0],
                 listItems[6], // rename
                 listItems[10], // copy
                 listItems[0],
@@ -388,6 +411,8 @@
                 listItems[0],
                 listItems[4],
                 listItems[5],
+                listItems[0],
+                isLinking == 0 ? listItems[12] : listItems[13],
                 listItems[0],
                 listItems[6],
                 listItems[10],
@@ -568,7 +593,7 @@
         {#each root.descendants() as node}
             {@const short = shortenPath(node.id)}
             {#if node.id.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
-                <G titleId={node.data} xCord={node.x - (recWidth / 2)} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => alert("clicked")} on:dblclick={async () => invoke("open_location", {location: node.data, application: ""})}>
+                <G titleId={node.data} xCord={node.x - (recWidth / 2)} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => console.log("mm")} on:dblclick={async () => invoke("open_location", {location: node.data, application: ""})}>
                     <g id="SVGRepo_iconCarrier">
                         <path data-directory={node.data} data-filename={short} id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
                         <g>

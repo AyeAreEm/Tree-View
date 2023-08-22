@@ -73,7 +73,7 @@ This project has not been tested in its build version and is not recommended unt
 - Item cap option (limit for the number of items that can be rendered)
 - Ability to pin master directories
 - Link colour (the lines connecting items)
-- Hide specific folders option (globally - doesn't render items but still searchable)
+- Hide specific folders option (globally - doesn't render items but still searchable) [has bug]
 - Ignore specific folders option (globally - doesn't load items at all)
 
 - Icon options? (might be too much of a hassle)
