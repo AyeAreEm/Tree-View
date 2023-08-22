@@ -24,6 +24,9 @@
                 emit("refresh-add", {
                     added: path 
                 });
+
+                emit("show-popup");
+
                 createLocation = "";
                 createEntDialog.close();
             });

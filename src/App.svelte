@@ -69,6 +69,8 @@
     let browserDi = {w: 0, h: 0};
     let menuItems = [];
 
+    let popUp;
+
     async function handleLoadDirectory(homeDirectory) {
         let received =  await invoke("load_directory", {directory: homeDirectory, userIgnores: ig});
         pathTmp = [];
@@ -118,6 +120,7 @@
 
             pathTmp = paths; // this updates the temperary value to the old paths
             paths = fullName; // this updates d3 with the found searched terms
+            showPopup(); // not sure if keeping this
         } else if (e.key === "Enter" && searchValue == "") {
             paths = pathTmp.length !== 0 ? pathTmp : paths;
         }
@@ -265,8 +268,10 @@
                     .then(success => {
                         if (success == 1) {
                             alert("error occured when copying and pasting item");
+                            return;
                         }
 
+                        showPopup();
                         handleLoadDirectory(homeDirectory);
                     });
                 });
@@ -402,6 +407,16 @@
     }
     // end of context menu
 
+    const showPopup = () => {
+        popUp.style.bottom =  0;
+
+        setTimeout(() => popUp.style.bottom = "", 3000);
+    }
+
+    listen('show-popup', () => {
+        showPopup();
+    });
+
     listen('refresh', () => {
         handleLoadDirectory(homeDirectory);
     });
@@ -499,7 +514,7 @@
             </button>
         </li>
         <!-- <li style="float: right; right: 0;">
-            <button title="line">
+            <button on:click={_ => showPopup()} title="line">
                 <svg width="15px" height="15px" viewBox="0 0 20 20" fill="none" stroke="#cfcfcf" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M0 0 L200 200 Z" stroke-width="1.5"></path>
                 </svg>
@@ -521,6 +536,11 @@
         <p class="unselectable" unselectable="on" title="{pathReal.length} / {pL}" style="position: absolute; bottom: 0; right: 0; margin: 0.5em; cursor: default;">
             {paths.length} / {pL}
         </p>
+
+    </div>
+
+    <div bind:this={popUp} class="popup unselectable" unselectable="on">
+        <p style="margin: 0;">👍</p>
     </div>
 
     <dialog bind:this={addDirectoryDialog}>
@@ -604,7 +624,7 @@
     {/if}
 </main>
 
-<svelte:window on:contextmenu|preventDefault={handleContextMenu} on:click={_ => showMenu = false} />
+<svelte:window on:contextmenu={handleContextMenu} on:click={_ => showMenu = false} />
 
 <style>
     .navbar {
@@ -637,5 +657,20 @@
     .navbar hr {
         height: 1px;
         margin: 0;
+    }
+
+    .popup {
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        position: fixed;
+        bottom: -400px;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        width: 60px;
+        background-color: #4ade80;
+        font-size: 25px;
+        cursor: default;
+        transition: all 350ms ease-in-out;
     }
 </style>

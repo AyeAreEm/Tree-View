@@ -24,6 +24,8 @@
                     removed: directory,
                     isDir
                 });
+
+                emit("show-popup");
             });
 
         deleteEntDialog.close();

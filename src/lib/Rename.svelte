@@ -31,6 +31,7 @@
                 console.log(isDir)
                 if (success == 1) {
                     alert("error occured when renaming this item.");
+                    return;
                 }
 
                 emit('refresh-rename', {
@@ -38,6 +39,8 @@
                   after: renamedLocation,
                   isDir
                 });
+
+                emit('show-popup');
 
                 renameLocation = "";
                 renameDialog.close();

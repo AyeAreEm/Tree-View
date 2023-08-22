@@ -8,9 +8,9 @@
     let selectedPin;
     let selectedLimit;
     let setIgnores = "";
-    let selectedIgnore = "";
+    let selectedIgnore;
     let setHides = "";
-    let selectedHide = "";
+    let selectedHide;
 
     export let bgColor;
     export let bgUrl;
