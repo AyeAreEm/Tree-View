@@ -458,6 +458,7 @@
             }
         }
 
+        paths = pathReal;
         if (hI.length !== 0) {
             paths = pathReal.filter(obj => {
                 return !obj.includes(hI);
@@ -467,7 +468,7 @@
     });
 
     listen('refresh-remove', (event) => {
-        if (event.payload.isDir) {
+        if (event.payload.isDir || paths.length == 1) {
             handleLoadDirectory(homeDirectory);
             return;
         }
@@ -475,15 +476,6 @@
         pathReal = pathReal.filter(obj => {
             return obj !== event.payload.removed;
         });
-
-        if (paths.length == 1) {
-            paths = pathReal.filter(obj => {
-                return !obj.includes(hI);
-            });
-
-            paths = paths.slice(0, pL);
-            return;
-        }
         
         paths = paths.filter(obj => {
             return obj !== event.payload.removed;
@@ -497,7 +489,7 @@
                 return !obj.includes(hI);
             })
         }
-        paths = paths.slice(0, pL);
+        paths = pathReal.slice(0, pL);
     });
 
     // artifical roots need a source with x and y, and target with x and y
@@ -609,7 +601,7 @@
                     </g>
                 </G>
             {:else}
-                <G titleId={node.data} xCord={node.x - (recHeight / 2)} yCord={node.y - 10} viewbox="0 0 64 64" w={recHeight} h={recWidth}  on:sglclick={_ => alert("clicked")} on:dblclick={async () => invoke("open_location", {location: node.data, application: ""})}>
+                <G titleId={node.data} xCord={node.x - (recHeight / 2)} yCord={node.y - 10} viewbox="0 0 64 64" w={recHeight} h={recWidth}  on:sglclick={_ => console.log("mm")} on:dblclick={async () => invoke("open_location", {location: node.data, application: ""})}>
                     <g id="SVGRepo_iconCarrier">
                         <g>
                             <g>

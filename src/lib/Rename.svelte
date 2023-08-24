@@ -28,7 +28,6 @@
 
         invoke('rename_location', {location: directory, newLocation: renameLocation, filename})
             .then(([isDir, renamedLocation, success]) => {
-                console.log(isDir)
                 if (success == 1) {
                     alert("error occured when renaming this item.");
                     return;

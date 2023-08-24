@@ -171,3 +171,10 @@ This crate adds more functionality to the fs and io stdlib. In particular, I nee
 // honestly dk what options are, it's just what was in the docs
 copy_items(&contents, to, &options)
 ```
+
+## Known Bugs
+| bug | macos | windows |
+| --- | --- | --- |
+| resize bg img doesnt scale | 🤷‍♂️ | 🕸 |
+| paste func paste items outside folder and copied folder | ❌ | 🕸 |
+| context menu position isn't right | 🕸 | 🕸 |

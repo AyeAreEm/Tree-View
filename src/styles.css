@@ -54,6 +54,7 @@ ul {
 
 li {
     float: left;
+    margin: 2px;
 }
 
 input[type=text], input[type=submit],

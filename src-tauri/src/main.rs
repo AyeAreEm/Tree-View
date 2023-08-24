@@ -84,6 +84,15 @@ fn load_directory(directory: &str, user_ignores: Vec<String>) -> Vec<String> {
                 .map(|f| f.path().display().to_string())
                 .collect();
 
+    if env::consts::OS == "windows" {
+        let mut win_content: Vec<String> = Vec::new();
+        for paths in content {
+            win_content.push(paths.replace("\\", "/"));
+        }
+
+        return win_content
+    }
+
     return content
 }
 
@@ -113,7 +122,10 @@ fn get_properties_command(window: Window, directory: String, filename: String) {
     window.emit("properties", &properties).unwrap();
 }
 
-fn open_on_windows(location: &str, application: &str) {
+fn open_on_windows(location_unsan: &String, application: &str) {
+    let binding = location_unsan.replace("/", "\\");
+    let location = binding.as_str();
+
     let index = if fs::metadata(location.clone()).unwrap().is_file() {location.rfind("\\").unwrap()} else {location.len()};
 
     match application {
@@ -179,28 +191,34 @@ fn open_location(location: String, application: String) {
     }
 }
 
-#[tauri::command]
-fn rename_location(location: String, new_location: String, filename: &str) -> (bool, String, i8) {
+fn rename_handler(location: &String, new_location: String, filename: &str, slash: &str) -> (bool, String, i8) {
     let metadata_result = fs::metadata(location.clone());
     let metadata = match metadata_result {
         Ok(metadata) => metadata,
         Err(_) => return (false, "".to_string(), 1)
     };
 
-    let new = match env::consts::OS {
-        "windows" => {
-            let path = format!("\\{}", filename);
-            format!("{}\\{}", location.replace(&path, ""), new_location)
-        },
-        _ => {
-            let path = format!("/{}", filename);
-            format!("{}/{}", location.replace(&path, ""), new_location)
-        }
+    let path = format!("{}{}", slash, filename);
+    let new = format!("{}{}{}", location.replace(&path, ""), slash, new_location);
+    let new_san = match env::consts::OS {
+        "windows" => new.replace("\\", "/"),
+        _ => new.clone(),
     };
 
     match fs::rename(location, new.clone()) {
-        Ok(_) => (metadata.is_dir(), new, 0),
+        Ok(_) => (metadata.is_dir(), new_san, 0),
         Err(_) => (false, "".to_string(), 1),
+    }
+}
+
+#[tauri::command]
+fn rename_location(location: String, new_location: String, filename: &str) -> (bool, String, i8) {
+    if env::consts::OS == "windows" {
+        let location_san = location.replace("/", "\\");
+
+        return rename_handler(&location_san, new_location, filename, "\\")
+    } else {
+        return rename_handler(&location, new_location, filename, "/")
     }
 }
 
@@ -232,21 +250,18 @@ fn create_location(directory: String, mut filename: String) -> (String, i8) {
         filename
     };
 
-    let mut location = match env::consts::OS {
-        "windows" => format!("{}\\{}", directory, filename),
-        _ => format!("{}/{}", directory, filename)
-    };
+    let mut location = format!("{}/{}", directory, filename);
 
     if location.ends_with("/") {
         location.pop();
         return match fs::create_dir(location.clone()) {
-            Ok(_) => (location, 0),
+            Ok(_) => (location.replace("\\", "/"), 0),
             Err(_) => ("".to_string(), 1), 
         }
     }
 
     match fs::File::create(location.clone()) {
-        Ok(_) => (location, 0),
+        Ok(_) => (location.replace("\\", "/"), 0),
         Err(_) => ("".to_string(), 1),
     }
 }
