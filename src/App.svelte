@@ -78,12 +78,12 @@
 
         pathReal = received;
         paths = pathReal;
-        if (hI.length !== 0) {
-            paths = pathReal.filter(obj => {
-                return !obj.includes(hI);
-            })
+        if (hI.length !== 0) { 
+            // if this has bugs, i will have no idea how to fix them.
+            paths = pathReal.filter(obj => !RegExp(hI.join('|')).test(obj));
         }
         paths = paths.slice(0, pL);
+        console.log(paths)
     }
 
     onMount(async () => {
@@ -460,9 +460,7 @@
 
         paths = pathReal;
         if (hI.length !== 0) {
-            paths = pathReal.filter(obj => {
-                return !obj.includes(hI);
-            })
+            paths = pathReal.filter(obj => !RegExp(hI.join('|')).test(obj));
         }
         paths = paths.slice(0, pL);
     });
@@ -485,9 +483,7 @@
     listen('refresh-add', (event) => {
         pathReal = pathReal.concat([event.payload.added]);
         if (hI.length !== 0) {
-            paths = pathReal.filter(obj => {
-                return !obj.includes(hI);
-            })
+            paths = pathReal.filter(obj => !RegExp(hI.join('|')).test(obj));
         }
         paths = pathReal.slice(0, pL);
     });
