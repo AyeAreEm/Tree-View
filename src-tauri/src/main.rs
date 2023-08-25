@@ -229,10 +229,7 @@ fn copy_paste(src: String, to: String) -> i8 {
     match copy_items(&vec![src], to, &options) {
         Ok(_) => return 0,
         Err(e) => match e.kind {
-            fs_extra::error::ErrorKind::AlreadyExists => {
-                println!("already exists");
-                return 0
-            },
+            fs_extra::error::ErrorKind::AlreadyExists => return 0,
             _ => return 1,
         },
     }
