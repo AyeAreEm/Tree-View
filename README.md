@@ -5,7 +5,7 @@
 ---
 Tree View is an individual oriented task management file explorer - currently in pre-alpha.
 
-Testing on Windows 10 and macOs Ventura - no guarantees for Linux
+Testing on Windows 10, Windows WSL for Ubuntu and macOs Ventura  - no guarantees for Linux
 
 be wary of Directory Man!
 <p align="center">

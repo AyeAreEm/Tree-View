@@ -580,7 +580,7 @@
     <svg style="margin-top: 3.5em;" width={width} height={height} viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
         {#each root.descendants() as node}
             {@const short = shortenPath(node.id)}
-            {#if node.id.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
+            {#if short.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
                 <G titleId={node.data} xCord={node.x - (recWidth / 2)} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => console.log("mm")} on:dblclick={async () => invoke("open_location", {location: node.data, application: ""})}>
                     <g id="SVGRepo_iconCarrier">
                         <path data-directory={node.data} data-filename={short} id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
