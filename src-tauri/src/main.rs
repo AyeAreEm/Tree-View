@@ -226,17 +226,13 @@ fn rename_location(location: String, new_location: String, filename: &str) -> (b
 fn copy_paste(src: String, to: String) -> i8 {
     let options = dir::CopyOptions::new();
 
-    let contents: Vec<_> = WalkDir::new(src)
-                .follow_links(true)
-                .into_iter()
-                .filter_map(|f| f.ok())
-                .map(|f| f.path().display().to_string())
-                .collect();
-
-    match copy_items(&contents, to, &options) {
+    match copy_items(&vec![src], to, &options) {
         Ok(_) => return 0,
         Err(e) => match e.kind {
-            fs_extra::error::ErrorKind::AlreadyExists => return 0,
+            fs_extra::error::ErrorKind::AlreadyExists => {
+                println!("already exists");
+                return 0
+            },
             _ => return 1,
         },
     }

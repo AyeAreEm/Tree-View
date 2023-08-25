@@ -176,5 +176,4 @@ copy_items(&contents, to, &options)
 | bug | macos | windows |
 | --- | --- | --- |
 | resize bg img doesnt scale | 🤷‍♂️ | 🕸 |
-| paste func paste items outside folder and copied folder | ❌ | 🕸 |
 | context menu position isn't right | 🕸 | 🕸 |
