@@ -36,8 +36,12 @@ customisation example:
 - [Settings Section](#settings-section) 
 
 ## Todos
-- Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
+- Link Lines: Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
+- Link Lines: position them better
+- Link Lines: deletable lines
+- Link Lines: save depending on directory
 - Create logo
+- Make certain settings directory dependent
 
 ---
 
@@ -175,5 +179,6 @@ copy_items(&contents, to, &options)
 ## Known Bugs
 | bug | macos | windows |
 | --- | --- | --- |
-| resize bg img doesnt scale | 🤷‍♂️ | 🕸 |
+| resize window sometimes doesn't resize bg image | 🤷‍♂️ | 🕸 |
 | context menu position isn't right | 🕸 | 🕸 |
+| deleted master directory bricks app | 🕸 | 🕸 |
