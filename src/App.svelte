@@ -84,27 +84,40 @@
             this.target = {x, y}
         }
 
-        hasDup(newX, newY, arr) {
-            if (arr.length == 0 || arr.length == 1) {
-                return false;
+        hasDup(sourceX, sourceY, targetX, targetY, arr) {
+            sourceX = sourceX == null ? this.source.x : sourceX;
+            sourceY = sourceY == null ? this.source.y : sourceY;
+
+            if (arr.length == 0) {
+                return [false, -1];
             }
 
+            // this operation is O(n). there is prolly a better optimisation but not too sure how to do that.
+            // maybe i couldve used indexOf instead but im too ceebs to refactor now. maybe later
             for (let i = 0; i < arr.length; i++) {
                 if (
-                    arr[i].source.x == this.source.x 
-                    && arr[i].source.y == this.source.y
-                    && arr[i].target.x == newX
-                    && arr[i].target.y == newY
+                    arr[i].source.x == sourceX 
+                    && arr[i].source.y == sourceY 
+                    && arr[i].target.x == targetX
+                    && arr[i].target.y == targetY
                 ) {
-                    return true;
+                    return [true, i];
+                } else if (
+                    arr[i].source.x == targetX 
+                    && arr[i].source.y == targetY
+                    && arr[i].target.x == sourceX
+                    && arr[i].target.y == sourceY
+                ) {
+                    return [true, i];
                 }
             }
 
-            return false;
+            return [false, -1];
         }
     }
 
     let artLink = new ArtLink();
+    // lmao didn't think this variable name through. it's not 
     let artLinkList = [];
     let isLinking = 0;
 
@@ -114,6 +127,7 @@
         // reset variables
         pathTmp = [];
         artLink = new ArtLink();
+        artLinkList = [];
         isLinking = 0;
 
         let received =  await invoke("load_directory", {directory: homeDirectory, userIgnores: ig});
@@ -326,14 +340,15 @@
 
         const startLink = () => {
             isLinking += 1;
-            artLink.addSource(parseInt(e.target.getAttribute('data-x')), parseInt(e.target.getAttribute('data-y')));
+            artLink.addSource(parseInt(e.target.getAttribute('data-x')) + 30, parseInt(e.target.getAttribute('data-y')) + 20);
         }
 
         const endLink = () => {
-            let dataX = parseInt(e.target.getAttribute('data-x'))
-            let dataY = parseInt(e.target.getAttribute('data-y'))
+            let dataX = parseInt(e.target.getAttribute('data-x')) + 30;
+            let dataY = parseInt(e.target.getAttribute('data-y')) + 20;
+            let [isDup, _] = artLink.hasDup(null, null, dataX, dataY, artLinkList);
 
-            if (artLink.hasDup(dataX, dataY, artLinkList)) {
+            if (isDup) {
                 alert("already exists")
                 artLink = new ArtLink();
                 isLinking = 0;
@@ -353,6 +368,19 @@
         const cancelLink = () => {
             isLinking = 0;
             artLink = new ArtLink();
+        }
+
+        const removeLink = () => {
+            let artLinkedSourceX = e.target.getAttribute("data-x1");
+            let artLinkedSourceY = e.target.getAttribute("data-y1");
+            let artLinkedTargetX = e.target.getAttribute("data-x2");
+            let artLinkedTargetY = e.target.getAttribute("data-y2");
+            
+            let [_, index] = artLink.hasDup(artLinkedSourceX, artLinkedSourceY, artLinkedTargetX, artLinkedTargetY, artLinkList);
+
+            // @ts-ignore it thinks index is either a number or bool but it is only a number.
+            artLinkList.splice(index, 1);
+            artLinkList = artLinkList;
         }
 
         let listItems = [
@@ -430,13 +458,29 @@
                 "class": "caution"
             },
             {
+                "title": "remove link",
+                "onclick": removeLink,
+                "class": "caution"
+            },
+            {
                 "title": "settings",
                 "onclick": showSettings,
                 "class": ""
             },
         ];
 
-        if (directory == "") {
+        if (directory == "" && e.target.getAttribute("data-x1") != undefined) {
+            menuItems = [
+                listItems[1],
+                listItems[2],
+                listItems[0],
+                listItems[11],
+                listItems[0],
+                listItems[15],
+                listItems[0],
+                listItems[listItems.length - 1]
+            ];
+        } else if (directory == "") {
             menuItems = [
                 listItems[1],
                 listItems[2],
@@ -464,7 +508,7 @@
                 listItems[5], // open w/ term
                 listItems[0],
                 isLinking == 0 ? listItems[12] : listItems[13],
-                isLinking == 1 ? listItems[14] : [],
+                isLinking == 1 ? listItems[14] : {"title": "none"},
                 listItems[0],
                 listItems[6], // rename
                 listItems[10], // copy
@@ -482,6 +526,7 @@
                 listItems[5],
                 listItems[0],
                 isLinking == 0 ? listItems[12] : listItems[13],
+                isLinking == 1 ? listItems[14] : {"title": "none"},
                 listItems[0],
                 listItems[6],
                 listItems[10],
@@ -646,6 +691,9 @@
     <Rename directory={globalDir} filename={globalFilename}/>
 
     <svg style="margin-top: 3.5em;" width={width} height={height} viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
+        {#each artLinkList as link}
+            <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y} x2={link.target.x} y2={link.target.y} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={lC} stroke-width="2"></line>
+        {/each}
         {#each root.descendants() as node}
             {@const short = shortenPath(node.id)}
             {#if short.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
@@ -689,10 +737,7 @@
             {/if}
         {/each}
         {#each root.links() as link}
-            <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={lC} stroke-width="2"></line>
-        {/each}
-        {#each artLinkList as link}
-            <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y} x2={link.target.x} y2={link.target.y} stroke={lC} stroke-width="2"></line>
+            <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={lC} stroke-width="2"></line>
         {/each}
     </svg>
 
@@ -702,7 +747,7 @@
                 {#each menuItems as item}
                     {#if item.title == "hr"}
                         <hr>
-                    {:else if item.title == undefined}
+                    {:else if item.title == "none"}
                         <div></div>
                     {:else}
                         <button class={item.class} on:click={item.onclick}>{item.title}</button>
