@@ -1,16 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-// really gotta work on the .unwrap()'s
-// should do actual error handling
 extern crate fs_extra;
 
 use std::env;
-// use std::path::PathBuf;
 use std::process::Command;
 use std::fs;
-// use std::io;
-
 use fs_extra::copy_items;
 use fs_extra::dir;
 use tauri::Size;
@@ -72,11 +67,10 @@ fn load_directory(directory: &str, user_ignores: Vec<String>) -> Vec<String> {
     let mut ignores = vec!["node_modules".to_string(), ".git".to_string(), "target".to_string(), ".DS_Store".to_string()];
     ignores.extend(user_ignores);
 
-    let content: Vec<_> = WalkDir::new(directory)
+    let content: Vec<String> = WalkDir::new(directory)
                 .follow_links(true)
                 .into_iter()
                 .filter_map(|f| f.ok())
-                // refactor this, load filters from file (csv) maybe?
                 .filter(|f| {
                     let path_display = f.path().display().to_string();
                     !ignores.iter().any(|ignore| path_display.contains(ignore))
@@ -99,7 +93,7 @@ fn load_directory(directory: &str, user_ignores: Vec<String>) -> Vec<String> {
 #[tauri::command]
 async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
     // this is needed because tauri doesn't like having multiple windows with the same label
-    // but for some reason, i can't just use "filename"
+    // but for some reason, i can't just use filename variable even though they could be different each time
     // so random number it is
 
     let label = rand::thread_rng().gen_range(0..10000);
@@ -107,7 +101,7 @@ async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
     let new_window = tauri::WindowBuilder::new(
         &handle,
         format!("{}", label),
-        // figure out how to build with this
+        // figure out how to build with this... might work already actually
         tauri::WindowUrl::App("../../src/properties.html".into())
     ).build().unwrap();
 

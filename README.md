@@ -32,13 +32,11 @@ customisation example:
 - ✅ Paste file or folder
 - Tags for quicker searches?
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
-- Horizontal Scroll between file tree, todo list, reminders, deadlines, issues, reports, etc?
+- Project management table with built-in fields and user made fields. (for v1.1)
 - [Settings Section](#settings-section) 
 
 ## Todos
-- Link Lines: Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - Link Lines: position them better
-- Link Lines: deletable lines
 - Link Lines: save depending on directory
 - Create logo
 - Make certain settings directory dependent

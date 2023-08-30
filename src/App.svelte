@@ -117,7 +117,7 @@
     }
 
     let artLink = new ArtLink();
-    // lmao didn't think this variable name through. it's not 
+    // lmao didn't think this variable name through. it's not an actual Linked List
     let artLinkList = [];
     let isLinking = 0;
 
@@ -639,13 +639,6 @@
                 </svg>
             </button>
         </li>
-        <!-- <li style="float: right; right: 0;">
-            <button on:click={_ => showPopup()} title="line">
-                <svg width="15px" height="15px" viewBox="0 0 20 20" fill="none" stroke="#cfcfcf" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M0 0 L200 200 Z" stroke-width="1.5"></path>
-                </svg>
-            </button>
-        </li> -->
     </ul>
 
     <div style="position: fixed; bottom: 0; width: 100%;">
@@ -674,7 +667,7 @@
         <form on:submit|preventDefault={handleAddDirectory} name="add-directory">
             <input spellcheck="false" type="text" name="nickname" placeholder="directory nickname" required/><br><br>
             <button type="button" on:click={_ => addDirectoryDialog.close()}>cancel</button>
-            <input type="submit" value="add" />
+            <input type="submit" value="choose" />
         </form>
     </dialog>
     <dialog bind:this={removeDirectoryDialog}>
