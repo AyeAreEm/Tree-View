@@ -30,16 +30,17 @@ customisation example:
 - ✅ Rename file or folder
 - ✅ Copy file or folder
 - ✅ Paste file or folder
+- ✅[Settings Section](#settings-section) 
 - Tags for quicker searches?
+- Expand search? (if item couldn't be found, option to search other master directories)
 - Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
 - Project management table with built-in fields and user made fields. (for v1.1)
-- [Settings Section](#settings-section) 
 
 ## Todos
 - Link Lines: position them better
-- Link Lines: save depending on directory
-- Create logo
 - Make certain settings directory dependent
+- Add error handling for opening, deleting, etc
+- Directory watcher?
 
 ---
 
@@ -156,16 +157,9 @@ open::that(location).unwrap();
 That's it. literally that's it. Chef's kiss.
 Although, I might need to use it more - we are mostly using rust's built in Command library because we need to run commands with certain apps when opening them (i.e. terminal and file explorer - the main ones 😅)
 
-### Use of Rand
-I don't think there's a lot to say about this one. It's just a random number generator.
-Rust doesn't have a rng included in its stdlib.
-The reason for this is each window needs a unique label when it's created, so random number yk.
-
-```rust
-let rng = rand::thread_rng();
-```
 ### Use of Fs_extra
 This crate adds more functionality to the fs and io stdlib. In particular, I need their copy_items function that recursively copies files/directories to another location
+Not sure if I need this need this yk, technically I could use WalkDir and the standard copy function in rust but this is easier and maybe more optimised.
 
 ```rust
 // contents is a vector of copy locations
@@ -179,4 +173,3 @@ copy_items(&contents, to, &options)
 | --- | --- | --- |
 | resize window sometimes doesn't resize bg image | 🤷‍♂️ | 🕸 |
 | context menu position isn't right | 🕸 | 🕸 |
-| deleted master directory bricks app | 🕸 | 🕸 |

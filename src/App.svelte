@@ -139,6 +139,12 @@
             paths = pathReal.filter(obj => !RegExp(hI.join('|')).test(obj));
         }
         paths = paths.slice(0, pL);
+
+        for (let i = 0; i < storedDirectories.length; i++) {
+            if (storedDirectories[i].directoryPath == homeDirectory) {
+                artLinkList = storedDirectories[i].artLinkList;
+            }
+        }
     }
 
     onMount(async () => {
@@ -203,7 +209,7 @@
         }
         
         // @ts-ignore
-        storedDirectories.push({"nickname": nickname.value, "directoryPath": selectedPath.replaceAll("\\", "/")});
+        storedDirectories.push({"nickname": nickname.value, "directoryPath": selectedPath.replaceAll("\\", "/"), artLinkList: []});
         storedDirectories = storedDirectories;
         localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
 
@@ -358,7 +364,16 @@
             if (artLink.source.x != dataX || artLink.source.y != dataY) {
                 artLink.addTarget(dataX, dataY);
                 artLinkList.push(artLink);
-                artLinkList = artLinkList
+                artLinkList = artLinkList;
+
+                for (let i = 0; i < storedDirectories.length; i++) {
+                    if (storedDirectories[i].directoryPath == homeDirectory) {
+                        storedDirectories[i].artLinkList = artLinkList;
+                        storedDirectories = storedDirectories;
+
+                        localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
+                    }
+                }
             }
 
             artLink = new ArtLink();
@@ -381,6 +396,15 @@
             // @ts-ignore it thinks index is either a number or bool but it is only a number.
             artLinkList.splice(index, 1);
             artLinkList = artLinkList;
+
+            for (let i = 0; i < storedDirectories.length; i++) {
+                if (storedDirectories[i].directoryPath == homeDirectory) {
+                    storedDirectories[i].artLinkList = artLinkList;
+                    storedDirectories = storedDirectories;
+
+                    localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
+                }
+            }
         }
 
         let listItems = [

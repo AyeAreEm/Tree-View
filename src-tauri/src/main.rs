@@ -64,6 +64,12 @@ fn get_properties(directory: &str, filename: &str) -> Properties {
 
 #[tauri::command]
 fn load_directory(directory: &str, user_ignores: Vec<String>) -> Vec<String> {
+    let metadata_result = fs::metadata(directory.clone());
+    match metadata_result {
+        Ok(metadata) => metadata,
+        Err(_) => return vec!["cannot find directory".to_string()],
+    };
+
     let mut ignores = vec!["node_modules".to_string(), ".git".to_string(), "target".to_string(), ".DS_Store".to_string()];
     ignores.extend(user_ignores);
 

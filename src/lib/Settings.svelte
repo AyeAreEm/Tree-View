@@ -95,6 +95,7 @@
         document.body.style.backgroundImage = `url('${bgUrl}')`;
 
         localStorage.setItem("lineColor", JSON.stringify(setLineColor));
+        lineColor.set(setLineColor);
         localStorage.setItem("pinned", JSON.stringify(selectedPin));
 
         localStorage.setItem("pathLimit", JSON.stringify(selectedLimit));
