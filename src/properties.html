@@ -126,7 +126,7 @@
             document.getElementById("fileExt").textContent = `extension: ${e.payload.extension}`;
             document.getElementById("fileSize").textContent = `size: ${size}`;
             document.getElementById("location").textContent = `location: ${directoryLocation}`;
-            document.getElementById("location").onclick = navigator.clipboard.writeText(`'${directoryLocation}'`);
+            document.getElementById("location").onclick = navigator.clipboard.writeText(directoryLocation);
         });
 
         function openLocation(application) {

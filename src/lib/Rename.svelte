@@ -53,7 +53,7 @@
     }
 </script>
 
-<dialog bind:this={renameDialog}>
+<dialog bind:this={renameDialog} class="unselectable" unselectable="on">
     <p style="color: white;">rename {filename}</p>
     <form on:submit|preventDefault={renameEnt}>
         <input bind:value={renameLocation} spellcheck="false" type="text" placeholder="filename" required/><br><br>

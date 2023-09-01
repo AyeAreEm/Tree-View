@@ -183,12 +183,20 @@ fn open_on_mac(location: &str, application: &str) {
 }
 
 #[tauri::command]
-fn open_location(location: String, application: String) {
+fn open_location(location: String, application: String) -> i8 {
+    let metadata_result = fs::metadata(location.clone());
+    match metadata_result {
+        Ok(metadata) => metadata,
+        Err(_) => return 1,
+    };
+
     if env::consts::OS == "windows" {
         open_on_windows(&location, &application);
     } else {
         open_on_mac(&location, &application);
     }
+
+    return 0;
 }
 
 fn rename_handler(location: &String, new_location: String, filename: &str, slash: &str) -> (bool, String, i8) {

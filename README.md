@@ -21,8 +21,8 @@ customisation example:
 - ✅ Add new `master` directories and switch between them
 - ✅ Search for a file in the current directory
 - ✅ Show files and folders in a vertical tree diagram
-- ✅ Get properties of a file 
-- ✅ Open a file in its respective app 
+- ✅ Get properties of a file / folder
+- ✅ Open a file / folder in its respective app 
 - ✅ Option to open directory in os's file explorer 
 - ✅ Option to open directory in terminal
 - ✅ Remove a file or folder
@@ -30,23 +30,25 @@ customisation example:
 - ✅ Rename file or folder
 - ✅ Copy file or folder
 - ✅ Paste file or folder
-- ✅[Settings Section](#settings-section) 
+- ✅ [Settings Section](#settings-section) 
+- ✅ Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
+- Project management table with built-in fields and user made fields. (for v1.1)
 - Tags for quicker searches?
 - Expand search? (if item couldn't be found, option to search other master directories)
-- Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
-- Project management table with built-in fields and user made fields. (for v1.1)
+- Git intergration? (for v1.1 or later)
 
 ## Todos
 - Link Lines: position them better
 - Make certain settings directory dependent
-- Add error handling for opening, deleting, etc
-- Directory watcher?
+- Directory watcher? (v1.1)
 
 ---
 
 ## Installation
 As of this moment, the only way to run this for yourself is by cloning the repo
 run these commands in the directory:
+
+`git clone https://github.com/AyeAreEm/Tree-View.git` note that you may need to `cd` into the project
 
 `npm i`
 
@@ -89,10 +91,9 @@ Using Rust (Tauri) as the backend and Javascript (Svelte and D3) as the frontend
 Rust recursively gets the files and folders in a chosen directory, supplies it to the frontend where it is drawn into a tree diagram.
 
 ### But how does linking unrelated folders and files work?
-Currently, haven't added it yet but I believe I can create my own dot file (.gitignorre, .git, .env, etc).
-It'll probably be named `.treeview` or something along those lines.
-
 Maybe just draw a line connecting them on the frontend and save it to localstorage? not sure.
+
+^And that's exactly what I did. just get two x and y coordinates of two items, then draw a line between them and save it to localstorage.
 
 ---
 

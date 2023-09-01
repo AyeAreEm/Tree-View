@@ -366,6 +366,7 @@
                 artLinkList.push(artLink);
                 artLinkList = artLinkList;
 
+                // could maybe use findIndex instead
                 for (let i = 0; i < storedDirectories.length; i++) {
                     if (storedDirectories[i].directoryPath == homeDirectory) {
                         storedDirectories[i].artLinkList = artLinkList;
@@ -686,7 +687,7 @@
         <p style="margin: 0;">👍</p>
     </div>
 
-    <dialog bind:this={addDirectoryDialog}>
+    <dialog bind:this={addDirectoryDialog} class="unselectable" unselectable="on">
         <p style="color: white;">provide an existing directory</p>
         <form on:submit|preventDefault={handleAddDirectory} name="add-directory">
             <input spellcheck="false" type="text" name="nickname" placeholder="directory nickname" required/><br><br>
@@ -694,7 +695,7 @@
             <input type="submit" value="choose" />
         </form>
     </dialog>
-    <dialog bind:this={removeDirectoryDialog}>
+    <dialog bind:this={removeDirectoryDialog} class="unselectable" unselectable="on">
         <p style="color: white;">removing won't delete from the device</p>
         <form on:submit|preventDefault={handleRemoveDirectory} name="remove-directory">
             <input spellcheck="false" type="text" name="nickname" placeholder="directory nickname" required/><br><br>
@@ -715,7 +716,7 @@
             {@const short = shortenPath(node.id)}
             {#if short.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
                 {@const xPos = node.x - (recWidth / 2)}
-                <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => console.log("mm")} on:dblclick={async () => invoke("open_location", {location: node.data, application: ""})}>
+                <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => console.log("mm")} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == 1) alert("error occured. location may not exist")})}>
                     <g id="SVGRepo_iconCarrier">
                         <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
                         <g>
@@ -733,7 +734,7 @@
             {:else}
                 {@const xPos = node.x - (recHeight / 2)}
                 {@const yPos = node.y - 10}
-                <G titleId={node.data} xCord={xPos} yCord={yPos} viewbox="0 0 64 64" w={recHeight} h={recWidth}  on:sglclick={_ => console.log("mm")} on:dblclick={async () => invoke("open_location", {location: node.data, application: ""})}>
+                <G titleId={node.data} xCord={xPos} yCord={yPos} viewbox="0 0 64 64" w={recHeight} h={recWidth}  on:sglclick={_ => console.log("mm")} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == 1) alert("error occured. location may not exist")})}>
                     <g id="SVGRepo_iconCarrier">
                         <g>
                             <g>

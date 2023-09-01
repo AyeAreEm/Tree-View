@@ -45,7 +45,7 @@
     }
 </script>
 
-<dialog bind:this={createEntDialog}>
+<dialog bind:this={createEntDialog} class="unselectable" unselectable="on">
     <p style="color: white;">create file or folder (end with / for folder)</p>
     <form on:submit|preventDefault={createEnt}>
         <input bind:value={createLocation} spellcheck="false" type="text" placeholder="entity name" required/><br><br>

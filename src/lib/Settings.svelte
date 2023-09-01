@@ -115,7 +115,7 @@
     }
 </script>
 
-<dialog bind:this={settingsDialog} style="text-align: left;">
+<dialog bind:this={settingsDialog} class="unselectable" unselectable="on" style="text-align: left;">
     <div style="color: white;">
         <p style="text-align: center;">reminder: save your changes</p>
         <hr><br>
@@ -145,7 +145,7 @@
         <p>changes number of folders / files that are allowed to be rendered. <i style="color: #E0115F;">not recommended</i></p>
         <details>
             <summary><i>note</i></summary>
-            <p>the rest of the items will render, just not the ones over the limit</p>
+            <p>items over the limit won't render. still searchable</p>
         </details>
         <label for="limit">entity limit: </label>
         <select name="limit" bind:value={selectedLimit}>

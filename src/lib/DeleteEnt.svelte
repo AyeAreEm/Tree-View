@@ -44,7 +44,7 @@
     }
 </script>
 
-<dialog bind:this={deleteEntDialog}>
+<dialog bind:this={deleteEntDialog} class="unselectable" unselectable="on">
     <p style="color: white;">delete this?</p>
     <button on:click={_ => deleteEntDialog.close()}>no</button>
     <button class="caution" on:click={deleteEnt}>yes</button>
