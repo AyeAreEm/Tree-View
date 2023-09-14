@@ -1,17 +1,16 @@
 <script>
     import { hideSettings, hideRename, hideCreateEnt, hideDeleteEnt, pathLimit, ignores, hides, lineColor } from "./stores";
-    import { onMount } from "svelte";
-    import { invoke } from '@tauri-apps/api/tauri';
-    import { listen } from '@tauri-apps/api/event'
-    import { open } from '@tauri-apps/api/dialog';
-    import * as d3 from "d3";
     import G from "./lib/G.svelte";
     import Settings from "./lib/Settings.svelte";
     import CreateEnt from "./lib/CreateEnt.svelte";
     import DeleteEnt from "./lib/DeleteEnt.svelte";
     import Rename from "./lib/Rename.svelte";
+    import { onMount } from "svelte";
+    import { invoke } from '@tauri-apps/api/tauri';
+    import { listen } from '@tauri-apps/api/event'
+    import { open } from '@tauri-apps/api/dialog';
+    import * as d3 from "d3";
 
-    // maybe have "artifical links" stored in localstorage either in its own or maybe better to use storedDirectories but change it to an object
     let bgUrl = localStorage.getItem("bgUrl") ? JSON.parse(localStorage.getItem("bgUrl")) : "";
     let bgColor = localStorage.getItem("bgColor") ? JSON.parse(localStorage.getItem("bgColor")) : "#252525";
     let storedDirectories = localStorage.getItem("storedDirectories") ? JSON.parse(localStorage.getItem("storedDirectories")) : [];
@@ -119,7 +118,7 @@
     let artLink = new ArtLink();
     // lmao didn't think this variable name through. it's not an actual Linked List
     let artLinkList = [];
-    let isLinking = 0;
+    let isLinking = false;
 
     let popUp;
 
@@ -128,7 +127,7 @@
         pathTmp = [];
         artLink = new ArtLink();
         artLinkList = [];
-        isLinking = 0;
+        isLinking = false;
 
         let received =  await invoke("load_directory", {directory: homeDirectory, userIgnores: ig});
 
@@ -274,15 +273,30 @@
         
         // need to make these functions for the context menu buttons - otherwise all these will run on launch
         const openCurrent = () => {
-            invoke("open_location", {location: directory, application: ""});
+            invoke("open_location", {location: directory, application: ""})
+                .then(success => {
+                    if (!success) {
+                        alert("error: can't find path");
+                    }
+                });
         }
 
         const openExplorer = () => {
-            invoke("open_location", {location: directory, application: "explorer"});
+            invoke("open_location", {location: directory, application: "explorer"})
+                .then(success => {
+                    if (!success) {
+                        alert("error: can't find path");
+                    }
+                });
         }
 
         const openTerm = () => {
-            invoke("open_location", {location: directory, application: "term"});
+            invoke("open_location", {location: directory, application: "term"})
+                .then(success => {
+                    if (!success) {
+                        alert("error: can't find path");
+                    }
+                });
         }
 
         const createEntity = () => {
@@ -329,8 +343,8 @@
 
                 invoke("copy_paste", {src: directory, to: res})
                     .then(success => {
-                        if (success == 1) {
-                            alert("error occured when copying and pasting item");
+                        if (success == false) {
+                            alert("error: can't copy and pasted files");
                             return;
                         }
 
@@ -345,7 +359,7 @@
         }
 
         const startLink = () => {
-            isLinking += 1;
+            isLinking = true;
             artLink.addSource(parseInt(e.target.getAttribute('data-x')) + 30, parseInt(e.target.getAttribute('data-y')) + 20);
         }
 
@@ -357,7 +371,7 @@
             if (isDup) {
                 alert("already exists")
                 artLink = new ArtLink();
-                isLinking = 0;
+                isLinking = false;
                 return;
             }
 
@@ -378,11 +392,11 @@
             }
 
             artLink = new ArtLink();
-            isLinking = 0;
+            isLinking = false;
         }
 
         const cancelLink = () => {
-            isLinking = 0;
+            isLinking = false;
             artLink = new ArtLink();
         }
 
@@ -532,8 +546,8 @@
                 listItems[4], // open w/ explorer
                 listItems[5], // open w/ term
                 listItems[0],
-                isLinking == 0 ? listItems[12] : listItems[13],
-                isLinking == 1 ? listItems[14] : {"title": "none"},
+                isLinking == false ? listItems[12] : listItems[13],
+                isLinking == true ? listItems[14] : {"title": "none"},
                 listItems[0],
                 listItems[6], // rename
                 listItems[10], // copy
@@ -550,8 +564,8 @@
                 listItems[4],
                 listItems[5],
                 listItems[0],
-                isLinking == 0 ? listItems[12] : listItems[13],
-                isLinking == 1 ? listItems[14] : {"title": "none"},
+                isLinking == false ? listItems[12] : listItems[13],
+                isLinking == true ? listItems[14] : {"title": "none"},
                 listItems[0],
                 listItems[6],
                 listItems[10],
@@ -713,46 +727,52 @@
             <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y} x2={link.target.x} y2={link.target.y} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={lC} stroke-width="2"></line>
         {/each}
         {#each root.descendants() as node}
-            {@const short = shortenPath(node.id)}
-            {#if short.lastIndexOf('.') == -1 || short.lastIndexOf('.') == 0}
-                {@const xPos = node.x - (recWidth / 2)}
-                <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => console.log("mm")} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == 1) alert("error occured. location may not exist")})}>
-                    <g id="SVGRepo_iconCarrier">
-                        <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
-                        <g>
-                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y}  id="SVGCleanerId_0_1_" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
-                        </g>
-                        <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#EFF2FA;" d="M485.517,70.621H26.483c-4.875,0-8.828,3.953-8.828,8.828v44.138h476.69V79.448 C494.345,74.573,490.392,70.621,485.517,70.621z"></path>
-                        <rect data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} x="17.655" y="105.931" style="fill:#E1E6F2;" width="476.69" height="17.655"></rect>
-                        <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#FFD782;" d="M494.345,88.276H217.318c-3.343,0-6.4,1.889-7.895,4.879l-10.336,20.671 c-2.99,5.982-9.105,9.76-15.791,9.76H55.05c-6.687,0-12.801-3.778-15.791-9.76L28.922,93.155c-1.495-2.99-4.552-4.879-7.895-4.879 h-3.372C7.904,88.276,0,96.18,0,105.931v335.448c0,9.751,7.904,17.655,17.655,17.655h476.69c9.751,0,17.655-7.904,17.655-17.655 V105.931C512,96.18,504.096,88.276,494.345,88.276z"></path>
-                        <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#FFC36E;" d="M485.517,441.379H26.483c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h459.034c4.875,0,8.828,3.953,8.828,8.828l0,0C494.345,437.427,490.392,441.379,485.517,441.379z"></path>
-                        <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#EFF2FA;" d="M326.621,220.69h132.414c4.875,0,8.828-3.953,8.828-8.828v-70.621c0-4.875-3.953-8.828-8.828-8.828 H326.621c-4.875,0-8.828,3.953-8.828,8.828v70.621C317.793,216.737,321.746,220.69,326.621,220.69z"></path>
-                        <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#C7CFE2;" d="M441.379,167.724h-97.103c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h97.103c4.875,0,8.828,3.953,8.828,8.828l0,0C450.207,163.772,446.254,167.724,441.379,167.724z"></path>
-                        <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#D7DEED;" d="M441.379,203.034h-97.103c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h97.103c4.875,0,8.828,3.953,8.828,8.828l0,0C450.207,199.082,446.254,203.034,441.379,203.034z"></path>
-                    </g>
-                </G>
-            {:else}
-                {@const xPos = node.x - (recHeight / 2)}
-                {@const yPos = node.y - 10}
-                <G titleId={node.data} xCord={xPos} yCord={yPos} viewbox="0 0 64 64" w={recHeight} h={recWidth}  on:sglclick={_ => console.log("mm")} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == 1) alert("error occured. location may not exist")})}>
-                    <g id="SVGRepo_iconCarrier">
-                        <g>
+            {@const short = shortenPath(node.data)}
+            {@const isDirPromise = invoke('get_is_dir', {path: node.data})}
+
+            {#await isDirPromise}
+                <h1>hi</h1>
+            {:then isDir} 
+                {#if isDir}
+                    {@const xPos = node.x - (recWidth / 2)}
+                    <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => console.log("mm")} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
+                        <g id="SVGRepo_iconCarrier">
+                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
                             <g>
-                                <polygon data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#cfcfcf" points="46,3.414 46,14 56.586,14 "></polygon>
-                                <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#cfcfcf" d="M45,16c-0.553,0-1-0.447-1-1V2H8C6.896,2,6,2.896,6,4v56c0,1.104,0.896,2,2,2h48c1.104,0,2-0.896,2-2V16 H45z"></path>
+                                <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y}  id="SVGCleanerId_0_1_" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
                             </g>
-                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M14,26c0,0.553,0.447,1,1,1h34c0.553,0,1-0.447,1-1s-0.447-1-1-1H15C14.447,25,14,25.447,14,26z"></path>
-                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M49,37H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,37,49,37z"></path>
-                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M49,43H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,43,49,43z"></path>
-                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M49,49H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,49,49,49z"></path>
-                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M49,31H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,31,49,31z"></path>
-                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M15,20h16c0.553,0,1-0.447,1-1s-0.447-1-1-1H15c-0.553,0-1,0.447-1,1S14.447,20,15,20z"></path>
-                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M59.706,14.292L45.708,0.294C45.527,0.112,45.277,0,45,0H8C5.789,0,4,1.789,4,4v56c0,2.211,1.789,4,4,4h48 c2.211,0,4-1.789,4-4V15C60,14.723,59.888,14.473,59.706,14.292z M46,3.414L56.586,14H46V3.414z M58,60c0,1.104-0.896,2-2,2H8 c-1.104,0-2-0.896-2-2V4c0-1.104,0.896-2,2-2h36v13c0,0.553,0.447,1,1,1h13V60z"></path>
-                            <polygon data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} opacity="0.15" fill="#231F20" points="46,3.414 56.586,14 46,14 "></polygon>
+                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#EFF2FA;" d="M485.517,70.621H26.483c-4.875,0-8.828,3.953-8.828,8.828v44.138h476.69V79.448 C494.345,74.573,490.392,70.621,485.517,70.621z"></path>
+                            <rect data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} x="17.655" y="105.931" style="fill:#E1E6F2;" width="476.69" height="17.655"></rect>
+                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#FFD782;" d="M494.345,88.276H217.318c-3.343,0-6.4,1.889-7.895,4.879l-10.336,20.671 c-2.99,5.982-9.105,9.76-15.791,9.76H55.05c-6.687,0-12.801-3.778-15.791-9.76L28.922,93.155c-1.495-2.99-4.552-4.879-7.895-4.879 h-3.372C7.904,88.276,0,96.18,0,105.931v335.448c0,9.751,7.904,17.655,17.655,17.655h476.69c9.751,0,17.655-7.904,17.655-17.655 V105.931C512,96.18,504.096,88.276,494.345,88.276z"></path>
+                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#FFC36E;" d="M485.517,441.379H26.483c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h459.034c4.875,0,8.828,3.953,8.828,8.828l0,0C494.345,437.427,490.392,441.379,485.517,441.379z"></path>
+                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#EFF2FA;" d="M326.621,220.69h132.414c4.875,0,8.828-3.953,8.828-8.828v-70.621c0-4.875-3.953-8.828-8.828-8.828 H326.621c-4.875,0-8.828,3.953-8.828,8.828v70.621C317.793,216.737,321.746,220.69,326.621,220.69z"></path>
+                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#C7CFE2;" d="M441.379,167.724h-97.103c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h97.103c4.875,0,8.828,3.953,8.828,8.828l0,0C450.207,163.772,446.254,167.724,441.379,167.724z"></path>
+                            <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} style="fill:#D7DEED;" d="M441.379,203.034h-97.103c-4.875,0-8.828-3.953-8.828-8.828l0,0c0-4.875,3.953-8.828,8.828-8.828 h97.103c4.875,0,8.828,3.953,8.828,8.828l0,0C450.207,199.082,446.254,203.034,441.379,203.034z"></path>
                         </g>
-                    </g>
-                </G>
-            {/if}
+                    </G>
+                {:else}
+                    {@const xPos = node.x - (recHeight / 2)}
+                    {@const yPos = node.y - 10}
+                    <G titleId={node.data} xCord={xPos} yCord={yPos} viewbox="0 0 64 64" w={recHeight} h={recWidth}  on:sglclick={_ => console.log("mm")} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
+                        <g id="SVGRepo_iconCarrier">
+                            <g>
+                                <g>
+                                    <polygon data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#cfcfcf" points="46,3.414 46,14 56.586,14 "></polygon>
+                                    <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#cfcfcf" d="M45,16c-0.553,0-1-0.447-1-1V2H8C6.896,2,6,2.896,6,4v56c0,1.104,0.896,2,2,2h48c1.104,0,2-0.896,2-2V16 H45z"></path>
+                                </g>
+                                <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M14,26c0,0.553,0.447,1,1,1h34c0.553,0,1-0.447,1-1s-0.447-1-1-1H15C14.447,25,14,25.447,14,26z"></path>
+                                <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M49,37H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,37,49,37z"></path>
+                                <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M49,43H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,43,49,43z"></path>
+                                <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M49,49H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,49,49,49z"></path>
+                                <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M49,31H15c-0.553,0-1,0.447-1,1s0.447,1,1,1h34c0.553,0,1-0.447,1-1S49.553,31,49,31z"></path>
+                                <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M15,20h16c0.553,0,1-0.447,1-1s-0.447-1-1-1H15c-0.553,0-1,0.447-1,1S14.447,20,15,20z"></path>
+                                <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#394240" d="M59.706,14.292L45.708,0.294C45.527,0.112,45.277,0,45,0H8C5.789,0,4,1.789,4,4v56c0,2.211,1.789,4,4,4h48 c2.211,0,4-1.789,4-4V15C60,14.723,59.888,14.473,59.706,14.292z M46,3.414L56.586,14H46V3.414z M58,60c0,1.104-0.896,2-2,2H8 c-1.104,0-2-0.896-2-2V4c0-1.104,0.896-2,2-2h36v13c0,0.553,0.447,1,1,1h13V60z"></path>
+                                <polygon data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} opacity="0.15" fill="#231F20" points="46,3.414 56.586,14 46,14 "></polygon>
+                            </g>
+                        </g>
+                    </G>
+                {/if}
+            {/await}
         {/each}
         {#each root.links() as link}
             <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={lC} stroke-width="2"></line>

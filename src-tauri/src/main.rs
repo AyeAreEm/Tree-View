@@ -81,17 +81,13 @@ fn load_directory(directory: &str, user_ignores: Vec<String>) -> Vec<String> {
                     let path_display = f.path().display().to_string();
                     !ignores.iter().any(|ignore| path_display.contains(ignore))
                 })
-                .map(|f| f.path().display().to_string())
+                .map(|f| {
+                    match env::consts::OS {
+                        "windows" => f.path().display().to_string().replace("\\", "/"),
+                        _ => f.path().display().to_string(),
+                    }
+                })
                 .collect();
-
-    if env::consts::OS == "windows" {
-        let mut win_content: Vec<String> = Vec::new();
-        for paths in content {
-            win_content.push(paths.replace("\\", "/"));
-        }
-
-        return win_content
-    }
 
     return content
 }
@@ -120,6 +116,19 @@ async fn make_properties_window(handle: tauri::AppHandle, filename: String) {
 fn get_properties_command(window: Window, directory: String, filename: String) {
     let properties = get_properties(&directory, &filename);
     window.emit("properties", &properties).unwrap();
+}
+
+#[tauri::command]
+fn get_is_dir(path: &str) -> bool {
+    if path == "welcome, create a directory^" {
+        return true;
+    }
+
+    let metadata_result = fs::metadata(path);
+    match metadata_result {
+        Ok(metadata) => return metadata.is_dir(),
+        Err(_) => return false,
+    };
 }
 
 fn open_on_windows(location_unsan: &String, application: &str) {
@@ -183,11 +192,11 @@ fn open_on_mac(location: &str, application: &str) {
 }
 
 #[tauri::command]
-fn open_location(location: String, application: String) -> i8 {
+fn open_location(location: String, application: String) -> bool {
     let metadata_result = fs::metadata(location.clone());
     match metadata_result {
         Ok(metadata) => metadata,
-        Err(_) => return 1,
+        Err(_) => return false,
     };
 
     if env::consts::OS == "windows" {
@@ -196,14 +205,14 @@ fn open_location(location: String, application: String) -> i8 {
         open_on_mac(&location, &application);
     }
 
-    return 0;
+    return true;
 }
 
-fn rename_handler(location: &String, new_location: String, filename: &str, slash: &str) -> (bool, String, i8) {
+fn rename_handler(location: &String, new_location: String, filename: &str, slash: &str) -> (bool, String, bool) {
     let metadata_result = fs::metadata(location.clone());
     let metadata = match metadata_result {
         Ok(metadata) => metadata,
-        Err(_) => return (false, "".to_string(), 1)
+        Err(_) => return (false, "".to_string(), false)
     };
 
     let path = format!("{}{}", slash, filename);
@@ -214,13 +223,13 @@ fn rename_handler(location: &String, new_location: String, filename: &str, slash
     };
 
     match fs::rename(location, new.clone()) {
-        Ok(_) => (metadata.is_dir(), new_san, 0),
-        Err(_) => (false, "".to_string(), 1),
+        Ok(_) => (metadata.is_dir(), new_san, true),
+        Err(_) => (false, "".to_string(), false),
     }
 }
 
 #[tauri::command]
-fn rename_location(location: String, new_location: String, filename: &str) -> (bool, String, i8) {
+fn rename_location(location: String, new_location: String, filename: &str) -> (bool, String, bool) {
     if env::consts::OS == "windows" {
         let location_san = location.replace("/", "\\");
 
@@ -231,20 +240,20 @@ fn rename_location(location: String, new_location: String, filename: &str) -> (b
 }
 
 #[tauri::command]
-fn copy_paste(src: String, to: String) -> i8 {
+fn copy_paste(src: String, to: String) -> bool {
     let options = dir::CopyOptions::new();
 
     match copy_items(&vec![src], to, &options) {
-        Ok(_) => return 0,
+        Ok(_) => return true,
         Err(e) => match e.kind {
-            fs_extra::error::ErrorKind::AlreadyExists => return 0,
-            _ => return 1,
+            fs_extra::error::ErrorKind::AlreadyExists => return true,
+            _ => return false,
         },
     }
 }
 
 #[tauri::command]
-fn create_location(directory: String, mut filename: String) -> (String, i8) {
+fn create_location(directory: String, mut filename: String) -> (String, bool) {
     filename = if !filename.ends_with("/") && !filename.contains(".") {
         format!("{}.txt", filename)
     } else {
@@ -256,41 +265,41 @@ fn create_location(directory: String, mut filename: String) -> (String, i8) {
     if location.ends_with("/") {
         location.pop();
         return match fs::create_dir(location.clone()) {
-            Ok(_) => (location.replace("\\", "/"), 0),
-            Err(_) => ("".to_string(), 1), 
+            Ok(_) => (location.replace("\\", "/"), true),
+            Err(_) => ("".to_string(), false), 
         }
     }
 
     match fs::File::create(location.clone()) {
-        Ok(_) => (location.replace("\\", "/"), 0),
-        Err(_) => ("".to_string(), 1),
+        Ok(_) => (location.replace("\\", "/"), true),
+        Err(_) => ("".to_string(), false),
     }
 }
 
 #[tauri::command]
-fn remove_location(location: String) -> (bool, i8) {
+fn remove_location(location: String) -> (bool, bool) {
     let metadata_result = fs::metadata(location.clone());
     let metadata = match metadata_result {
         Ok(metadata) => metadata,
-        Err(_) => return (false, 1),
+        Err(_) => return (false, false),
     };
 
     if metadata.is_dir() {
         match fs::remove_dir_all(location) {
-            Ok(_) => (metadata.is_dir(), 0),
-            Err(_) => (false, 1),
+            Ok(_) => (metadata.is_dir(), true),
+            Err(_) => (false, false),
         }
     } else {
         match fs::remove_file(location) {
-            Ok(_) => (metadata.is_dir(), 0),
-            Err(_) => (false, 1),
+            Ok(_) => (metadata.is_dir(), true),
+            Err(_) => (false, false),
         }
     }
 }
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, open_location, rename_location, create_location, remove_location, copy_paste])
+        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, get_is_dir, open_location, rename_location, create_location, remove_location, copy_paste])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

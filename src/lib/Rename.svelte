@@ -28,8 +28,8 @@
 
         invoke('rename_location', {location: directory, newLocation: renameLocation, filename})
             .then(([isDir, renamedLocation, success]) => {
-                if (success == 1) {
-                    alert("error occured when renaming this item.");
+                if (success == false) {
+                    alert("error: can't find path or currently being used");
                     return;
                 }
 

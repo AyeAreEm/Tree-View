@@ -16,8 +16,8 @@
     const createEnt = () => {
         invoke("create_location", {directory, filename: createLocation})
             .then(([path, success]) => {
-                if (success == 1) {
-                    alert("problem with creating entity");
+                if (success == false) {
+                    alert("error: can't create item");
                     return;
                 }
 
