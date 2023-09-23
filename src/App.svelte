@@ -819,7 +819,6 @@
 
     .navbar button:hover {
         background-color: #396cd8;
-        cursor: auto;
     }
 
     .navbar button.caution:hover {

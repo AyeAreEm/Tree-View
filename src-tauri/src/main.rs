@@ -120,8 +120,9 @@ fn get_properties_command(window: Window, directory: String, filename: String) {
 
 #[tauri::command]
 fn get_is_dir(path: &str) -> bool {
-    if path == "welcome, create a directory^" {
-        return true;
+    match path {
+        "welcome, create a directory^" | "cannot find directory" => return true,
+        _ => (),
     }
 
     let metadata_result = fs::metadata(path);
