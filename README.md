@@ -32,17 +32,17 @@ customisation example:
 - ✅ Paste file or folder
 - ✅ [Settings Section](#settings-section) 
 - ✅ Link a chosen directory to a chosen file (main feature of this. unavailable in regular file explorer)
+- ✅ Keyboard shortcuts (navigate between master directories, focus on searchbar, open settings, etc.)
 - Project management table with built-in fields and user made fields. (for v1.1 or later)
 - Tags for quicker searches?
 - Git intergration? (for v1.1 or later)
 
 ## Todos
+- 👷 Selectable items (that blue glow around selected files to indicate which is in focus and such | could lead to loads of keyboard shortcuts)
 - Link Lines: position them better
 - Make certain settings directory dependent
 - Directory watcher? (v1.1)
 - Expand search? (if item couldn't be found, option to search other master directories)
-- Keyboard shortcuts (navigate between master directories, focus on searchbar, open settings, etc.)
-- Selectable items (that blue glow around selected files to indicate which is in focus and such | could lead to loads of keyboard shortcuts)
 
 ---
 

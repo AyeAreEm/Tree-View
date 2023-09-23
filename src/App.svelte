@@ -45,7 +45,8 @@
     let globalFilename = "";
 
     let homeDirectory; // selected storedDirectory
-    let searchValue; // search bar
+    let searchBar;
+    let searchValue; 
     
     // dialogs
     let addDirectoryDialog;
@@ -119,6 +120,7 @@
     // lmao didn't think this variable name through. it's not an actual Linked List
     let artLinkList = [];
     let isLinking = false;
+    let selected = [];
 
     let popUp;
 
@@ -161,11 +163,45 @@
         await handleLoadDirectory(storedDirectories[index].directoryPath);
     })
 
+    document.addEventListener('keypress', e => {
+        if (e.metaKey) {
+
+            if (e.key == "s") {
+                hideSettings.set(false);
+                return;
+            }
+
+            if (e.key == "=") {
+                addDirectoryDialog.showModal();
+                return;
+            }
+
+            if (e.key == "-") {
+                removeDirectoryDialog.showModal();
+                return;
+            }
+
+            if (isNaN(parseInt(e.key)) || parseInt(e.key) > storedDirectories.length) {
+                return;
+            }
+
+            homeDirectory = storedDirectories[parseInt(e.key) - 1].directoryPath;
+            handleLoadDirectory(homeDirectory);
+            return;
+        }
+
+        if (e.key == "/") {
+            setTimeout(() => {
+                searchBar.focus();
+            }, 1);
+        }
+    })
+
     const shortenPath = (path) => {
         let index = path.lastIndexOf('/');
 
         return path.substring(index + 1);
-    }
+   }
 
     const handleSearchBar = (e) => {
         if (e.key === "Enter" && searchValue != "" && searchValue != "") {
@@ -359,6 +395,26 @@
         }
 
         const startLink = () => {
+            if (selected.length == 2) {
+                artLink.addSource(selected[0].xCord + 30, selected[0].yCord + 20);
+                let [isDup, _] = artLink.hasDup(null, null, selected[1].xCord, selected[1].yCord, artLinkList);
+
+                if (isDup) {
+                    alert("already exists");
+                    artLink = new ArtLink();
+                    return;
+                }
+
+                if (artLink.source.x != (selected[1].xCord + 30) || artLink.source.y != (selected[1].yCord + 20)) {
+                    artLink.addTarget(selected[1].xCord + 30, selected[1].yCord + 20);
+                    artLinkList.push(artLink);
+                    artLinkList = artLinkList;
+                    console.log(artLinkList);
+                }
+
+                return;
+            }
+
             isLinking = true;
             artLink.addSource(parseInt(e.target.getAttribute('data-x')) + 30, parseInt(e.target.getAttribute('data-y')) + 20);
         }
@@ -585,6 +641,18 @@
     }
     // end of context menu
 
+    const handleSelect = (x, y, w, h) => {
+        let index = selected.findIndex((e) => e.xCord == x && e.yCord == y);
+        if (index != -1) {
+            selected.splice(index, 1);
+            selected = selected;
+            return;
+        }
+
+        selected.push({xCord: x, yCord: y, width: w, height: h});
+        selected = selected;
+    }
+
     const showPopup = () => {
         popUp.style.bottom =  0;
 
@@ -666,7 +734,7 @@
             <button on:click={addDirectoryDialog.showModal()} title="add parent directory">+</button>
         </li>
         <li style="float: right; right: 0;">
-            <input type="text" id="search" spellcheck="false" placeholder="search" bind:value={searchValue} on:keydown={handleSearchBar}/>
+            <input type="text" id="search" spellcheck="false" placeholder="search" bind:this={searchBar} bind:value={searchValue} on:keydown={handleSearchBar}/>
         </li>
         <li style="float: right; right: 0;">
             <button on:click={_ => handleLoadDirectory(homeDirectory)} title="refresh tree">
@@ -726,6 +794,9 @@
         {#each artLinkList as link}
             <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y} x2={link.target.x} y2={link.target.y} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={lC} stroke-width="2"></line>
         {/each}
+        {#each selected as indivSelect}
+            <rect x={indivSelect.xCord} y={indivSelect.yCord} rx="5" ry="5" width={indivSelect.width} height={indivSelect.height} style="fill: #6ec3f7; stroke: black; stroke-width: 2; opacity: 0.3;" />
+        {/each}
         {#each root.descendants() as node}
             {@const short = shortenPath(node.data)}
             {@const isDirPromise = invoke('get_is_dir', {path: node.data})}
@@ -735,7 +806,7 @@
             {:then isDir} 
                 {#if isDir}
                     {@const xPos = node.x - (recWidth / 2)}
-                    <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => console.log("mm")} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
+                    <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => handleSelect(xPos, node.y, recWidth, recHeight)} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
                         <g id="SVGRepo_iconCarrier">
                             <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
                             <g>
@@ -753,7 +824,7 @@
                 {:else}
                     {@const xPos = node.x - (recHeight / 2)}
                     {@const yPos = node.y - 10}
-                    <G titleId={node.data} xCord={xPos} yCord={yPos} viewbox="0 0 64 64" w={recHeight} h={recWidth}  on:sglclick={_ => console.log("mm")} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
+                    <G titleId={node.data} xCord={xPos} yCord={yPos} viewbox="0 0 64 64" w={recHeight} h={recWidth}  on:sglclick={_ => handleSelect(xPos, yPos, recHeight, recWidth)} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
                         <g id="SVGRepo_iconCarrier">
                             <g>
                                 <g>
@@ -796,7 +867,7 @@
     {/if}
 </main>
 
-<svelte:window on:contextmenu|preventDefault={handleContextMenu} on:click={_ => showMenu = false} />
+<svelte:window on:contextmenu={handleContextMenu} on:click={_ => showMenu = false} />
 
 <style>
     .navbar {
