@@ -163,17 +163,21 @@
                 case "CommandOrControl+s":
                     hideSettings.set(false);
                     break;
+
                 case "CommandOrControl+=":
                     addDirectoryDialog.showModal();
                     break;
+
                 case "CommandOrControl+-":
                     removeDirectoryDialog.showModal();
                     break;
+
                 case "CommandOrControl+/":
                     setTimeout(() => {
                         searchBar.focus();
                     }, 1);
                     break;
+
                 default:
                     if (parseInt(shortcut.charAt(shortcut.length - 1)) > storedDirectories.length) {
                         return;
@@ -185,40 +189,6 @@
             }
         });
     });
-
-    document.addEventListener('keypress', e => {
-        if (e.metaKey) {
-
-            if (e.key == "s") {
-                hideSettings.set(false);
-                return;
-            }
-
-            if (e.key == "=") {
-                addDirectoryDialog.showModal();
-                return;
-            }
-
-            if (e.key == "-") {
-                removeDirectoryDialog.showModal();
-                return;
-            }
-
-            if (isNaN(parseInt(e.key)) || parseInt(e.key) > storedDirectories.length) {
-                return;
-            }
-
-            homeDirectory = storedDirectories[parseInt(e.key) - 1].directoryPath;
-            handleLoadDirectory(homeDirectory);
-            return;
-        }
-
-        if (e.key == "/") {
-            setTimeout(() => {
-                searchBar.focus();
-            }, 1);
-        }
-    })
 
     const shortenPath = (path) => {
         let index = path.lastIndexOf('/');
@@ -904,7 +874,7 @@
     {/if}
 </main>
 
-<svelte:window on:contextmenu|preventDefault={handleContextMenu} on:click={_ => showMenu = false} />
+<svelte:window on:contextmenu={handleContextMenu} on:click={_ => showMenu = false} />
 
 <style>
     .navbar {
