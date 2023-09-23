@@ -186,6 +186,40 @@
         });
     });
 
+    document.addEventListener('keypress', e => {
+        if (e.metaKey) {
+
+            if (e.key == "s") {
+                hideSettings.set(false);
+                return;
+            }
+
+            if (e.key == "=") {
+                addDirectoryDialog.showModal();
+                return;
+            }
+
+            if (e.key == "-") {
+                removeDirectoryDialog.showModal();
+                return;
+            }
+
+            if (isNaN(parseInt(e.key)) || parseInt(e.key) > storedDirectories.length) {
+                return;
+            }
+
+            homeDirectory = storedDirectories[parseInt(e.key) - 1].directoryPath;
+            handleLoadDirectory(homeDirectory);
+            return;
+        }
+
+        if (e.key == "/") {
+            setTimeout(() => {
+                searchBar.focus();
+            }, 1);
+        }
+    })
+
     const shortenPath = (path) => {
         let index = path.lastIndexOf('/');
 
@@ -801,6 +835,9 @@
         {#each selected as indivSelect}
             <rect x={indivSelect.xCord} y={indivSelect.yCord - 2.5} rx="5" ry="5" width={indivSelect.width} height={indivSelect.height} style="fill: #6ec3f7; stroke: black; stroke-width: 2; opacity: 0.3;" />
         {/each}
+        {#each selected as indivSelect}
+            <rect x={indivSelect.xCord} y={indivSelect.yCord} rx="5" ry="5" width={indivSelect.width} height={indivSelect.height} style="fill: #6ec3f7; stroke: black; stroke-width: 2; opacity: 0.3;" />
+        {/each}
         {#each root.descendants() as node}
             {@const short = shortenPath(node.data)}
             {@const isDirPromise = invoke('get_is_dir', {path: node.data})}
@@ -869,7 +906,7 @@
     {/if}
 </main>
 
-<svelte:window on:contextmenu|preventDefault={handleContextMenu} on:click={_ => showMenu = false} />
+<svelte:window on:contextmenu={handleContextMenu} on:click={_ => showMenu = false} />
 
 <style>
     .navbar {
