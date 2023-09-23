@@ -6,11 +6,6 @@
 
     let deleteEntDialog;
     export let directory;
-    
-    let cE;
-    hideDeleteEnt.subscribe(value => {
-        cE = value;
-    })
 
     const deleteEnt = () => {
         invoke("remove_location", {location: directory})
@@ -38,7 +33,7 @@
     })
 
     $: {
-        if (!cE) {
+        if (!$hideDeleteEnt) {
             deleteEntDialog.showModal();
         }
     }

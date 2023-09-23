@@ -17,38 +17,14 @@
     export let storedDirectories;
     export let pinned;
 
-    let pL;
-    pathLimit.subscribe(value => {
-        pL = value;
-    });
-
-    let hS;
-    hideSettings.subscribe(value => {
-        hS = value;
-    });
-
-    let ig;
-    ignores.subscribe(value => {
-        ig = value;
-    });
-
-    let hI;
-    hides.subscribe(value => {
-        hI = value;
-    });
-
-    let lC;
-    lineColor.subscribe(value => {
-        lC = value;
-    });
-    let setLineColor = lC;
+    let setLineColor = $lineColor;
 
     onMount(() => {
         settingsDialog.addEventListener('close', () => {
             hideSettings.set(true);
         });
 
-        selectedIgnore = ig[0];
+        selectedIgnore = $ignores[0];
     });
 
     const displayBgUrl = (e) => {
@@ -67,10 +43,10 @@
             }
 
             if (isIgnores) {
-                ignores.set([...ig, setIgnores]);
+                ignores.set([...$ignores, setIgnores]);
                 setIgnores = "";
             } else {
-                hides.set([...hI, setHides]);
+                hides.set([...$hides, setHides]);
                 setHides = "";
             }
         }
@@ -101,15 +77,15 @@
         localStorage.setItem("pathLimit", JSON.stringify(selectedLimit));
         pathLimit.set(selectedLimit);
 
-        localStorage.setItem("ignores", JSON.stringify(ig));
-        localStorage.setItem("hides", JSON.stringify(hI));
+        localStorage.setItem("ignores", JSON.stringify($ignores));
+        localStorage.setItem("hides", JSON.stringify($hides));
 
         emit("refresh");
         settingsDialog.close();
     }
 
     $: {
-        if (!hS) {
+        if (!$hideSettings) {
             settingsDialog.showModal();
         }
     }
@@ -150,7 +126,7 @@
         <label for="limit">entity limit: </label>
         <select name="limit" bind:value={selectedLimit}>
             {#each {length: 100} as _, index}
-                {#if index+1 == pL}
+                {#if index+1 == $pathLimit}
                     <option selected value={index + 1}>{index + 1}</option>
                 {:else}
                     <option value={index + 1}>{index + 1}</option>
@@ -160,10 +136,10 @@
 
         <p>hide any items that has a given name. still searchable.</p>
         <label for="hides">hide folders/ files:</label>
-        <input type="text" name="hides" spellcheck="false" bind:value={setHides} on:keydown={e => addingINH(e, setHides, hI, false)}/><br>
+        <input type="text" name="hides" spellcheck="false" bind:value={setHides} on:keydown={e => addingINH(e, setHides, $hides, false)}/><br>
         <select bind:value={selectedHide}>
-            {#if hI.length !== 0}
-                {#each hI as hide}
+            {#if $hides.length !== 0}
+                {#each $hides as hide}
                     <option value={hide}>{hide}</option>
                 {/each}
             {/if}
@@ -180,10 +156,10 @@
 
         <p>completely ignores any items that has a given name.</p>
         <label for="ignores">ignore folders/ files:</label>
-        <input type="text" name="ignores" spellcheck="false" bind:value={setIgnores} on:keydown={e => addingINH(e, setIgnores, ig, true)}/><br>
+        <input type="text" name="ignores" spellcheck="false" bind:value={setIgnores} on:keydown={e => addingINH(e, setIgnores, $ignores, true)}/><br>
         <select bind:value={selectedIgnore}>
-            {#if ig.length !== 0}
-                {#each ig as ignore}
+            {#if $ignores.length !== 0}
+                {#each $ignores as ignore}
                     <option value={ignore}>{ignore}</option>
                 {/each}
             {/if}

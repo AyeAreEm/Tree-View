@@ -8,6 +8,7 @@
     import { onMount } from "svelte";
     import { invoke } from '@tauri-apps/api/tauri';
     import { listen } from '@tauri-apps/api/event'
+    import { registerAll } from '@tauri-apps/api/globalShortcut';
     import { open } from '@tauri-apps/api/dialog';
     import * as d3 from "d3";
 
@@ -16,27 +17,6 @@
     let storedDirectories = localStorage.getItem("storedDirectories") ? JSON.parse(localStorage.getItem("storedDirectories")) : [];
     // god forgive me for this one liner
     let pinned = localStorage.getItem("pinned") ? JSON.parse(localStorage.getItem("pinned")) : storedDirectories[0].nickname ? storedDirectories[0].nickname : '';
-
-    // global variable between components
-    let pL;
-    pathLimit.subscribe(value => {
-        pL = value;
-    });
-
-    let ig;
-    ignores.subscribe(value => {
-        ig = value;
-    });
-
-    let hI;
-    hides.subscribe(value => {
-        hI = value;
-    });
-
-    let lC;
-    lineColor.subscribe(value => {
-        lC = value;
-    });
 
     document.body.style.backgroundImage = `url('${bgUrl}')`;
     document.body.style.backgroundColor = bgColor;
@@ -127,19 +107,20 @@
     async function handleLoadDirectory(homeDirectory) {
         // reset variables
         pathTmp = [];
+        selected = [];
         artLink = new ArtLink();
         artLinkList = [];
         isLinking = false;
 
-        let received =  await invoke("load_directory", {directory: homeDirectory, userIgnores: ig});
+        let received =  await invoke("load_directory", {directory: homeDirectory, userIgnores: $ignores});
 
         pathReal = received;
         paths = pathReal;
-        if (hI.length !== 0) { 
+        if ($hides.length !== 0) { 
             // if this has bugs, i will have no idea how to fix them.
-            paths = pathReal.filter(obj => !RegExp(hI.join('|')).test(obj));
+            paths = pathReal.filter(obj => !RegExp($hides.join('|')).test(obj));
         }
-        paths = paths.slice(0, pL);
+        paths = paths.slice(0, $pathLimit);
 
         for (let i = 0; i < storedDirectories.length; i++) {
             if (storedDirectories[i].directoryPath == homeDirectory) {
@@ -161,41 +142,49 @@
         }
         
         await handleLoadDirectory(storedDirectories[index].directoryPath);
-    })
 
-    document.addEventListener('keypress', e => {
-        if (e.metaKey) {
+        await registerAll(
+            [
+                'CommandOrControl+s',
+                'CommandOrControl+=',
+                'CommandOrControl+-',
+                'CommandOrControl+/',
+                'CommandOrControl+1',
+                'CommandOrControl+2',
+                'CommandOrControl+3',
+                'CommandOrControl+4',
+                'CommandOrControl+5',
+                'CommandOrControl+6',
+                'CommandOrControl+7',
+                'CommandOrControl+8',
+                'CommandOrControl+9',
+            ], (shortcut) => {
+            switch (shortcut) {
+                case "CommandOrControl+s":
+                    hideSettings.set(false);
+                    break;
+                case "CommandOrControl+=":
+                    addDirectoryDialog.showModal();
+                    break;
+                case "CommandOrControl+-":
+                    removeDirectoryDialog.showModal();
+                    break;
+                case "CommandOrControl+/":
+                    setTimeout(() => {
+                        searchBar.focus();
+                    }, 1);
+                    break;
+                default:
+                    if (parseInt(shortcut.charAt(shortcut.length - 1)) > storedDirectories.length) {
+                        return;
+                    }
 
-            if (e.key == "s") {
-                hideSettings.set(false);
-                return;
+                    homeDirectory = storedDirectories[parseInt(shortcut.charAt(shortcut.length - 1)) - 1].directoryPath;
+                    handleLoadDirectory(homeDirectory);
+                    break;
             }
-
-            if (e.key == "=") {
-                addDirectoryDialog.showModal();
-                return;
-            }
-
-            if (e.key == "-") {
-                removeDirectoryDialog.showModal();
-                return;
-            }
-
-            if (isNaN(parseInt(e.key)) || parseInt(e.key) > storedDirectories.length) {
-                return;
-            }
-
-            homeDirectory = storedDirectories[parseInt(e.key) - 1].directoryPath;
-            handleLoadDirectory(homeDirectory);
-            return;
-        }
-
-        if (e.key == "/") {
-            setTimeout(() => {
-                searchBar.focus();
-            }, 1);
-        }
-    })
+        });
+    });
 
     const shortenPath = (path) => {
         let index = path.lastIndexOf('/');
@@ -217,9 +206,16 @@
 
             pathTmp = paths; // this updates the temperary value to the old paths
             paths = fullName; // this updates d3 with the found searched terms
+            artLinkList = [];
             showPopup(); // not sure if keeping this
         } else if (e.key === "Enter" && searchValue == "") {
             paths = pathTmp.length !== 0 ? pathTmp : paths;
+
+            for (let i = 0; i < storedDirectories.length; i++) {
+                if (storedDirectories[i].directoryPath == homeDirectory) {
+                    artLinkList = storedDirectories[i].artLinkList;
+                }
+            }
         }
     }
 
@@ -396,8 +392,13 @@
 
         const startLink = () => {
             if (selected.length == 2) {
-                artLink.addSource(selected[0].xCord + 30, selected[0].yCord + 20);
-                let [isDup, _] = artLink.hasDup(null, null, selected[1].xCord, selected[1].yCord, artLinkList);
+                let sourceX = selected[0].xCord + 30;
+                let sourceY = selected[0].yCord + 20;
+                let targetX = selected[1].xCord + 30;
+                let targetY = selected[1].yCord + 20;
+
+                artLink.addSource(sourceX, sourceY);
+                let [isDup, _] = artLink.hasDup(null, null, targetX, targetY, artLinkList);
 
                 if (isDup) {
                     alert("already exists");
@@ -405,23 +406,24 @@
                     return;
                 }
 
-                if (artLink.source.x != (selected[1].xCord + 30) || artLink.source.y != (selected[1].yCord + 20)) {
-                    artLink.addTarget(selected[1].xCord + 30, selected[1].yCord + 20);
+                if (artLink.source.x != targetX || artLink.source.y != targetY) {
+                    artLink.addTarget(targetX, targetY);
                     artLinkList.push(artLink);
                     artLinkList = artLinkList;
-                    console.log(artLinkList);
+
+                    selected = [];
                 }
 
                 return;
             }
 
             isLinking = true;
-            artLink.addSource(parseInt(e.target.getAttribute('data-x')) + 30, parseInt(e.target.getAttribute('data-y')) + 20);
+            artLink.addSource(parseFloat(e.target.getAttribute('data-x')) + 30, parseFloat(e.target.getAttribute('data-y')) + 20);
         }
 
         const endLink = () => {
-            let dataX = parseInt(e.target.getAttribute('data-x')) + 30;
-            let dataY = parseInt(e.target.getAttribute('data-y')) + 20;
+            let dataX = parseFloat(e.target.getAttribute('data-x')) + 30;
+            let dataY = parseFloat(e.target.getAttribute('data-y')) + 20;
             let [isDup, _] = artLink.hasDup(null, null, dataX, dataY, artLinkList);
 
             if (isDup) {
@@ -642,6 +644,8 @@
     // end of context menu
 
     const handleSelect = (x, y, w, h) => {
+        h += 5;
+
         let index = selected.findIndex((e) => e.xCord == x && e.yCord == y);
         if (index != -1) {
             selected.splice(index, 1);
@@ -680,10 +684,10 @@
         }
 
         paths = pathReal;
-        if (hI.length !== 0) {
-            paths = pathReal.filter(obj => !RegExp(hI.join('|')).test(obj));
+        if ($hides.length !== 0) {
+            paths = pathReal.filter(obj => !RegExp($hides.join('|')).test(obj));
         }
-        paths = paths.slice(0, pL);
+        paths = paths.slice(0, $pathLimit);
     });
 
     listen('refresh-remove', (event) => {
@@ -703,10 +707,10 @@
 
     listen('refresh-add', (event) => {
         pathReal = pathReal.concat([event.payload.added]);
-        if (hI.length !== 0) {
-            paths = pathReal.filter(obj => !RegExp(hI.join('|')).test(obj));
+        if ($hides.length !== 0) {
+            paths = pathReal.filter(obj => !RegExp($hides.join('|')).test(obj));
         }
-        paths = pathReal.slice(0, pL);
+        paths = pathReal.slice(0, $pathLimit);
     });
 
     $: root = d3.stratify().path((d) => d)(paths);
@@ -759,8 +763,8 @@
             </svg>
         </button>
 
-        <p class="unselectable" unselectable="on" title="{pathReal.length} / {pL}" style="position: absolute; bottom: 0; right: 0; margin: 0.5em; cursor: default;">
-            {paths.length} / {pL}
+        <p class="unselectable" unselectable="on" title="{pathReal.length} / {$pathLimit}" style="position: absolute; bottom: 0; right: 0; margin: 0.5em; cursor: default;">
+            {paths.length} / {$pathLimit}
         </p>
 
     </div>
@@ -792,10 +796,10 @@
 
     <svg style="margin-top: 3.5em;" width={width} height={height} viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
         {#each artLinkList as link}
-            <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y} x2={link.target.x} y2={link.target.y} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={lC} stroke-width="2"></line>
+            <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y} x2={link.target.x} y2={link.target.y} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={$lineColor} stroke-width="2"></line>
         {/each}
         {#each selected as indivSelect}
-            <rect x={indivSelect.xCord} y={indivSelect.yCord} rx="5" ry="5" width={indivSelect.width} height={indivSelect.height} style="fill: #6ec3f7; stroke: black; stroke-width: 2; opacity: 0.3;" />
+            <rect x={indivSelect.xCord} y={indivSelect.yCord - 2.5} rx="5" ry="5" width={indivSelect.width} height={indivSelect.height} style="fill: #6ec3f7; stroke: black; stroke-width: 2; opacity: 0.3;" />
         {/each}
         {#each root.descendants() as node}
             {@const short = shortenPath(node.data)}
@@ -804,10 +808,10 @@
             {#await isDirPromise}
                 <h1>hi</h1>
             {:then isDir} 
+                {@const xPos = node.x - (recWidth / 2)}
                 {#if isDir}
-                    {@const xPos = node.x - (recWidth / 2)}
                     <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => handleSelect(xPos, node.y, recWidth, recHeight)} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
-                        <g id="SVGRepo_iconCarrier">
+                        <g id="nodeFolder">
                             <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
                             <g>
                                 <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y}  id="SVGCleanerId_0_1_" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
@@ -822,10 +826,8 @@
                         </g>
                     </G>
                 {:else}
-                    {@const xPos = node.x - (recHeight / 2)}
-                    {@const yPos = node.y - 10}
-                    <G titleId={node.data} xCord={xPos} yCord={yPos} viewbox="0 0 64 64" w={recHeight} h={recWidth}  on:sglclick={_ => handleSelect(xPos, yPos, recHeight, recWidth)} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
-                        <g id="SVGRepo_iconCarrier">
+                    <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 64 64" w={recWidth} h={recHeight}  on:sglclick={_ => handleSelect(xPos, node.y, recWidth, recHeight)} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
+                        <g id="nodeFile">
                             <g>
                                 <g>
                                     <polygon data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} fill="#cfcfcf" points="46,3.414 46,14 56.586,14 "></polygon>
@@ -846,7 +848,7 @@
             {/await}
         {/each}
         {#each root.links() as link}
-            <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={lC} stroke-width="2"></line>
+            <line x1={link.source.x} y1={link.source.y + recHeight} x2={link.target.x} y2={link.target.y} stroke={$lineColor} stroke-width="2"></line>
         {/each}
     </svg>
 
@@ -867,7 +869,7 @@
     {/if}
 </main>
 
-<svelte:window on:contextmenu={handleContextMenu} on:click={_ => showMenu = false} />
+<svelte:window on:contextmenu|preventDefault={handleContextMenu} on:click={_ => showMenu = false} />
 
 <style>
     .navbar {

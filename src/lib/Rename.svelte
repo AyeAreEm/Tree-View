@@ -9,11 +9,6 @@
     export let directory;
     export let filename
 
-    let hR;
-    hideRename.subscribe(value => {
-        hR = value;
-    });
-
     onMount(() => {
         renameDialog.addEventListener('close', () => {
             hideRename.set(true);
@@ -47,7 +42,7 @@
     }
 
     $: {
-        if (!hR) {
+        if (!$hideRename) {
             renameDialog.showModal();
         }
     }

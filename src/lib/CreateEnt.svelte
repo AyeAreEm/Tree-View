@@ -7,11 +7,6 @@
     let createEntDialog;
     let createLocation;
     export let directory;
-    
-    let cE;
-    hideCreateEnt.subscribe(value => {
-        cE = value;
-    })
 
     const createEnt = () => {
         invoke("create_location", {directory, filename: createLocation})
@@ -39,7 +34,7 @@
     })
 
     $: {
-        if (!cE) {
+        if (!$hideCreateEnt) {
             createEntDialog.showModal();
         }
     }
