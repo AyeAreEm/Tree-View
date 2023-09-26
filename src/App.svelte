@@ -145,34 +145,34 @@
 
         await registerAll(
             [
-                'CommandOrControl+s',
-                'CommandOrControl+=',
-                'CommandOrControl+-',
-                'CommandOrControl+/',
-                'CommandOrControl+1',
-                'CommandOrControl+2',
-                'CommandOrControl+3',
-                'CommandOrControl+4',
-                'CommandOrControl+5',
-                'CommandOrControl+6',
-                'CommandOrControl+7',
-                'CommandOrControl+8',
-                'CommandOrControl+9',
+                'CommandOrControl+Shift+s',
+                'CommandOrControl+Shift+=',
+                'CommandOrControl+Shift+-',
+                'CommandOrControl+Shift+/',
+                'CommandOrControl+Shift+1',
+                'CommandOrControl+Shift+2',
+                'CommandOrControl+Shift+3',
+                'CommandOrControl+Shift+4',
+                'CommandOrControl+Shift+5',
+                'CommandOrControl+Shift+6',
+                'CommandOrControl+Shift+7',
+                'CommandOrControl+Shift+8',
+                'CommandOrControl+Shift+9',
             ], (shortcut) => {
             switch (shortcut) {
-                case "CommandOrControl+s":
+                case "CommandOrControl+Shift+s":
                     hideSettings.set(false);
                     break;
 
-                case "CommandOrControl+=":
+                case "CommandOrControl+Shift+=":
                     addDirectoryDialog.showModal();
                     break;
 
-                case "CommandOrControl+-":
+                case "CommandOrControl+Shift+-":
                     removeDirectoryDialog.showModal();
                     break;
 
-                case "CommandOrControl+/":
+                case "CommandOrControl+Shift+/":
                     setTimeout(() => {
                         searchBar.focus();
                     }, 1);
@@ -197,28 +197,33 @@
    }
 
     const handleSearchBar = (e) => {
-        if (e.key === "Enter" && searchValue != "" && searchValue != "") {
+        if (e.key === "Enter") {
             paths = pathTmp.length !== 0 ? pathTmp : paths;
+            selected = [];
 
-            let fullName = pathReal.filter(obj => {
-                return obj.toLowerCase().includes(searchValue.toLowerCase());
-            });
+            switch (searchValue) {
+                case "":
+                    for (let i = 0; i < storedDirectories.length; i++) {
+                        if (storedDirectories[i].directoryPath == homeDirectory) {
+                            artLinkList = storedDirectories[i].artLinkList;
+                        }
+                    }
+                    break;
+            
+                default:
+                    let fullName = pathReal.filter(obj => {
+                        return obj.toLowerCase().includes(searchValue.toLowerCase());
+                    });
 
-            if (fullName.length === 0) {
-                return;
-            }
+                    if (fullName.length === 0) {
+                        return;
+                    }
 
-            pathTmp = paths; // this updates the temperary value to the old paths
-            paths = fullName; // this updates d3 with the found searched terms
-            artLinkList = [];
-            showPopup(); // not sure if keeping this
-        } else if (e.key === "Enter" && searchValue == "") {
-            paths = pathTmp.length !== 0 ? pathTmp : paths;
-
-            for (let i = 0; i < storedDirectories.length; i++) {
-                if (storedDirectories[i].directoryPath == homeDirectory) {
-                    artLinkList = storedDirectories[i].artLinkList;
-                }
+                    pathTmp = paths; // this updates the temperary value to the old paths
+                    paths = fullName; // this updates d3 with the found searched terms
+                    artLinkList = [];
+                    showPopup(); // not sure if keeping this
+                    break;
             }
         }
     }
@@ -283,6 +288,7 @@
     const handleContext = (directory, filename) => {
         invoke("make_properties_window", {filename});
 
+        // try using .then() after making the window instead of settimeout
         setTimeout(() => {
             invoke("get_properties_command", {directory, filename});
         }, 300);
@@ -377,17 +383,31 @@
                     return;
                 }
 
-                invoke("copy_paste", {src: directory, to: res})
-                    .then(success => {
-                        if (success == false) {
-                            alert("error: can't copy and pasted files");
-                            return;
-                        }
+                if (!selected.length) {
+                    invoke("copy_paste", {src: [directory], to: res})
+                        .then(success => {
+                            if (success == false) {
+                                alert("error: can't copy and pasted files");
+                                return;
+                            }
 
-                        showPopup();
-                        handleLoadDirectory(homeDirectory);
-                    });
-                });
+                            showPopup();
+                            handleLoadDirectory(homeDirectory);
+                        });
+                } else {
+                    let selectedDirs = selected.map(item => item.dir);
+                    invoke("copy_paste", {src: selectedDirs, to: res})
+                        .then(success => {
+                            if (success == false) {
+                                alert("error: can't copy and pasted files");
+                                return;
+                            }
+
+                            showPopup();
+                            handleLoadDirectory(homeDirectory);
+                        });
+                }
+            });
         }
 
         const reload = () => {
@@ -647,7 +667,7 @@
     }
     // end of context menu
 
-    const handleSelect = (x, y, w, h) => {
+    const handleSelect = (x, y, w, h, dir) => {
         h += 5;
 
         let index = selected.findIndex((e) => e.xCord == x && e.yCord == y);
@@ -657,8 +677,7 @@
             return;
         }
 
-        selected.push({xCord: x, yCord: y, width: w, height: h});
-        console.log(selected)
+        selected.push({xCord: x, yCord: y, width: w, height: h, dir});
         selected = selected;
     }
 
@@ -800,8 +819,22 @@
     <Rename directory={globalDir} filename={globalFilename}/>
 
     <svg style="margin-top: 3.5em;" width={width} height={height} viewBox="0, 0, 1400, 825" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <marker markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" viewBox="0 0 5 5" orient="auto" id="arrowTail">
+                <polygon id="arrow" points="0,5 0,0 5,2.5" fill={$lineColor}></polygon>
+            </marker>
+            <marker markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" viewBox="0 0 5 5" orient="auto" id="arrowHead">
+                <polygon id="arrow" points="0,2.5 5,0 5,5" fill={$lineColor}></polygon>
+            </marker>
+        </defs>
         {#each artLinkList as link}
-            <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y} x2={link.target.x} y2={link.target.y} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={$lineColor} stroke-width="2"></line>
+            <g stroke-width="2" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round" data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y}>
+                {#if link.source.y == link.target.y}
+                    <line style="cursor: pointer;" x1={link.source.x+25} y1={link.source.y} x2={link.target.x-25} y2={link.target.y} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={$lineColor} marker-end="url(#arrowTail)" marker-start="url(#arrowHead)"></line>
+                {:else}
+                    <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y+25} x2={link.target.x} y2={link.target.y-25} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={$lineColor} marker-end="url(#arrowTail)" marker-start="url(#arrowHead)"></line>
+                {/if}
+            </g>
         {/each}
         {#each selected as indivSelect}
             <rect x={indivSelect.xCord} y={indivSelect.yCord - 2.5} rx="5" ry="5" width={indivSelect.width} height={indivSelect.height} style="fill: #6ec3f7; stroke: black; stroke-width: 2; opacity: 0.3;" />
@@ -811,11 +844,11 @@
             {@const isDirPromise = invoke('get_is_dir', {path: node.data})}
 
             {#await isDirPromise}
-                <h1>hi</h1>
+                <p></p>
             {:then isDir} 
                 {@const xPos = node.x - (recWidth / 2)}
                 {#if isDir}
-                    <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => handleSelect(xPos, node.y, recWidth, recHeight)} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
+                    <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 512 512" w={recWidth} h={recHeight} on:sglclick={_ => handleSelect(xPos, node.y, recWidth, recHeight, node.data)} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
                         <g id="nodeFolder">
                             <path data-directory={node.data} data-filename={short} data-x={xPos} data-y={node.y} id="SVGCleanerId_0" style="fill:#FFC36E;" d="M183.295,123.586H55.05c-6.687,0-12.801-3.778-15.791-9.76l-12.776-25.55 l12.776-25.55c2.99-5.982,9.103-9.76,15.791-9.76h128.246c6.687,0,12.801,3.778,15.791,9.76l12.775,25.55l-12.776,25.55 C196.096,119.808,189.983,123.586,183.295,123.586z"></path>
                             <g>
@@ -831,7 +864,7 @@
                         </g>
                     </G>
                 {:else}
-                    <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 64 64" w={recWidth} h={recHeight}  on:sglclick={_ => handleSelect(xPos, node.y, recWidth, recHeight)} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
+                    <G titleId={node.data} xCord={xPos} yCord={node.y} viewbox="0 0 64 64" w={recWidth} h={recHeight}  on:sglclick={_ => handleSelect(xPos, node.y, recWidth, recHeight, node.data)} on:dblclick={() => invoke("open_location", {location: node.data, application: ""}).then(success => {if (success == false) alert("error: can't find path")})}>
                         <g id="nodeFile">
                             <g>
                                 <g>

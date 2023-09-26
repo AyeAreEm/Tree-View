@@ -241,10 +241,10 @@ fn rename_location(location: String, new_location: String, filename: &str) -> (b
 }
 
 #[tauri::command]
-fn copy_paste(src: String, to: String) -> bool {
+fn copy_paste(src: Vec<String>, to: String) -> bool {
     let options = dir::CopyOptions::new();
 
-    match copy_items(&vec![src], to, &options) {
+    match copy_items(&src, to, &options) {
         Ok(_) => return true,
         Err(e) => match e.kind {
             fs_extra::error::ErrorKind::AlreadyExists => return true,
