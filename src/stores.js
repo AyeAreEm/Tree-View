@@ -7,7 +7,6 @@ export const hideDeleteEnt = writable(true);
 
 export const hideRename = writable(true);
 
-export const pathLimit = writable(JSON.parse(localStorage.getItem("pathLimit")) || 50);
+export const storedDirectories = writable(JSON.parse(localStorage.getItem("storedDirectories")) || []);
 export const ignores = writable(JSON.parse(localStorage.getItem("ignores")) || []);
-export const hides = writable(JSON.parse(localStorage.getItem("hides")) || []);
 export const lineColor = writable(JSON.parse(localStorage.getItem("lineColor")) || "#adadad");

@@ -1,5 +1,5 @@
 <script>
-    import { hideSettings, pathLimit, ignores, hides, lineColor } from "../stores";
+    import { storedDirectories, hideSettings, ignores, lineColor } from "../stores";
     import { onMount } from "svelte";
     import { emit } from "@tauri-apps/api/event";
 
@@ -12,9 +12,11 @@
     let setHides = "";
     let selectedHide;
 
+    export let homeDirectory;
+    export let entityLimit;
+    export let hides
     export let bgColor;
     export let bgUrl;
-    export let storedDirectories;
     export let pinned;
 
     let setLineColor = $lineColor;
@@ -46,7 +48,8 @@
                 ignores.set([...$ignores, setIgnores]);
                 setIgnores = "";
             } else {
-                hides.set([...$hides, setHides]);
+                hides.push(setHides);
+                hides = hides;
                 setHides = "";
             }
         }
@@ -74,11 +77,16 @@
         lineColor.set(setLineColor);
         localStorage.setItem("pinned", JSON.stringify(selectedPin));
 
-        localStorage.setItem("pathLimit", JSON.stringify(selectedLimit));
-        pathLimit.set(selectedLimit);
+        for (let i = 0; i < $storedDirectories.length; i++) {
+            if ($storedDirectories[i].directoryPath == homeDirectory) {
+                $storedDirectories[i].entityLimit = selectedLimit;
+
+                localStorage.setItem("storedDirectories", JSON.stringify($storedDirectories));
+            }
+        }
 
         localStorage.setItem("ignores", JSON.stringify($ignores));
-        localStorage.setItem("hides", JSON.stringify($hides));
+        localStorage.setItem("hides", JSON.stringify(hides));
 
         emit("refresh");
         settingsDialog.close();
@@ -107,7 +115,7 @@
 
         <label for="pin">pin on launch: </label>
         <select name="pin" bind:value={selectedPin}>
-            {#each storedDirectories as storedDirectory}
+            {#each $storedDirectories as storedDirectory}
                 {#if storedDirectory.nickname == pinned}
                     <option selected value={storedDirectory.nickname}>{storedDirectory.nickname}</option>
                 {:else}
@@ -126,7 +134,7 @@
         <label for="limit">entity limit: </label>
         <select name="limit" bind:value={selectedLimit}>
             {#each {length: 100} as _, index}
-                {#if index+1 == $pathLimit}
+                {#if index+1 == entityLimit}
                     <option selected value={index + 1}>{index + 1}</option>
                 {:else}
                     <option value={index + 1}>{index + 1}</option>
@@ -134,12 +142,12 @@
             {/each}
         </select><br><br>
 
-        <p>hide any items that has a given name. still searchable.</p>
+        <p>locally hide any items that has a given name. still searchable.</p>
         <label for="hides">hide folders/ files:</label>
-        <input type="text" name="hides" spellcheck="false" bind:value={setHides} on:keydown={e => addingINH(e, setHides, $hides, false)}/><br>
+        <input type="text" name="hides" spellcheck="false" bind:value={setHides} on:keydown={e => addingINH(e, setHides, hides, false)}/><br>
         <select bind:value={selectedHide}>
-            {#if $hides.length !== 0}
-                {#each $hides as hide}
+            {#if hides.length !== 0}
+                {#each hides as hide}
                     <option value={hide}>{hide}</option>
                 {/each}
             {/if}
@@ -154,7 +162,9 @@
             </svg>
         </button><br><br>
 
-        <p>completely ignores any items that has a given name.</p>
+        <hr>
+
+        <p>globally ignores any items that has a given name.</p>
         <label for="ignores">ignore folders/ files:</label>
         <input type="text" name="ignores" spellcheck="false" bind:value={setIgnores} on:keydown={e => addingINH(e, setIgnores, $ignores, true)}/><br>
         <select bind:value={selectedIgnore}>

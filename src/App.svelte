@@ -1,5 +1,5 @@
 <script>
-    import { hideSettings, hideRename, hideCreateEnt, hideDeleteEnt, pathLimit, ignores, hides, lineColor } from "./stores";
+    import {storedDirectories, hideSettings, hideRename, hideCreateEnt, hideDeleteEnt, ignores, lineColor } from "./stores";
     import G from "./lib/G.svelte";
     import Settings from "./lib/Settings.svelte";
     import CreateEnt from "./lib/CreateEnt.svelte";
@@ -14,9 +14,11 @@
 
     let bgUrl = localStorage.getItem("bgUrl") ? JSON.parse(localStorage.getItem("bgUrl")) : "";
     let bgColor = localStorage.getItem("bgColor") ? JSON.parse(localStorage.getItem("bgColor")) : "#252525";
-    let storedDirectories = localStorage.getItem("storedDirectories") ? JSON.parse(localStorage.getItem("storedDirectories")) : [];
     // god forgive me for this one liner
-    let pinned = localStorage.getItem("pinned") ? JSON.parse(localStorage.getItem("pinned")) : storedDirectories[0].nickname ? storedDirectories[0].nickname : '';
+    let pinned = localStorage.getItem("pinned") ? JSON.parse(localStorage.getItem("pinned")) : !!$storedDirectories.length ? storedDirectories[0].nickname : '';
+
+    let entityLimit = 50;
+    let hides = [];
 
     document.body.style.backgroundImage = `url('${bgUrl}')`;
     document.body.style.backgroundColor = bgColor;
@@ -116,32 +118,32 @@
 
         pathReal = received;
         paths = pathReal;
-        if ($hides.length !== 0) { 
+        if (hides.length !== 0) { 
             // if this has bugs, i will have no idea how to fix them.
-            paths = pathReal.filter(obj => !RegExp($hides.join('|')).test(obj));
+            paths = pathReal.filter(obj => !RegExp(hides.join('|')).test(obj));
         }
-        paths = paths.slice(0, $pathLimit);
+        paths = paths.slice(0, entityLimit);
 
-        for (let i = 0; i < storedDirectories.length; i++) {
-            if (storedDirectories[i].directoryPath == homeDirectory) {
-                artLinkList = storedDirectories[i].artLinkList;
+        for (let i = 0; i < $storedDirectories.length; i++) {
+            if ($storedDirectories[i].directoryPath == homeDirectory) {
+                artLinkList = $storedDirectories[i].artLinkList;
             }
         }
     }
 
     onMount(async () => {
-        if (!storedDirectories.length) {
+        if (!$storedDirectories.length) {
             return;
         }
 
         let index = 0;
-        for (let i = 0; i < storedDirectories.length; i++) {
-            if (storedDirectories[i].nickname == pinned) {
+        for (let i = 0; i < $storedDirectories.length; i++) {
+            if ($storedDirectories[i].nickname == pinned) {
                 index = i;
             }
         }
         
-        await handleLoadDirectory(storedDirectories[index].directoryPath);
+        await handleLoadDirectory($storedDirectories[index].directoryPath);
 
         await registerAll(
             [
@@ -179,11 +181,11 @@
                     break;
 
                 default:
-                    if (parseInt(shortcut.charAt(shortcut.length - 1)) > storedDirectories.length) {
+                    if (parseInt(shortcut.charAt(shortcut.length - 1)) > $storedDirectories.length) {
                         return;
                     }
 
-                    homeDirectory = storedDirectories[parseInt(shortcut.charAt(shortcut.length - 1)) - 1].directoryPath;
+                    homeDirectory = $storedDirectories[parseInt(shortcut.charAt(shortcut.length - 1)) - 1].directoryPath;
                     handleLoadDirectory(homeDirectory);
                     break;
             }
@@ -203,9 +205,9 @@
 
             switch (searchValue) {
                 case "":
-                    for (let i = 0; i < storedDirectories.length; i++) {
-                        if (storedDirectories[i].directoryPath == homeDirectory) {
-                            artLinkList = storedDirectories[i].artLinkList;
+                    for (let i = 0; i < $storedDirectories.length; i++) {
+                        if ($storedDirectories[i].directoryPath == homeDirectory) {
+                            artLinkList = $storedDirectories[i].artLinkList;
                         }
                     }
                     break;
@@ -221,7 +223,7 @@
 
                     pathTmp = paths; // this updates the temperary value to the old paths
                     paths = fullName; // this updates d3 with the found searched terms
-                    artLinkList = [];
+                    if (paths.length != pathTmp.length) artLinkList = [];
                     showPopup(); // not sure if keeping this
                     break;
             }
@@ -231,8 +233,8 @@
     const handleAddDirectory = async () => {
         let nickname = document.forms["add-directory"]["nickname"];
         
-        for (let i = 0; i < storedDirectories.length; i++) {
-            if (storedDirectories[i].nickname.trim() === nickname.value.trim()) {
+        for (let i = 0; i < $storedDirectories.length; i++) {
+            if ($storedDirectories[i].nickname.trim() === nickname.value.trim()) {
                 alert("nickname already exists");
                 return;
             }
@@ -249,11 +251,11 @@
         }
         
         // @ts-ignore
-        storedDirectories.push({"nickname": nickname.value, "directoryPath": selectedPath.replaceAll("\\", "/"), artLinkList: []});
-        storedDirectories = storedDirectories;
-        localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
+        $storedDirectories.push({"nickname": nickname.value, "directoryPath": selectedPath.replaceAll("\\", "/"), artLinkList: [], entityLimit: 50, hides: []});
+        $storedDirectories = $storedDirectories;
+        localStorage.setItem("storedDirectories", JSON.stringify($storedDirectories));
 
-        homeDirectory = storedDirectories[storedDirectories.length - 1].directoryPath;
+        homeDirectory = $storedDirectories[$storedDirectories.length - 1].directoryPath;
         await handleLoadDirectory(homeDirectory);
 
         nickname.value = "";
@@ -261,20 +263,20 @@
     }
 
     const handleRemoveDirectory = () => {
-        if (storedDirectories.length === 0) {
+        if ($storedDirectories.length === 0) {
             return;
         }
 
         let nickname = document.forms["remove-directory"]["nickname"];
 
-        storedDirectories = storedDirectories.filter(obj => {
+        $storedDirectories = $storedDirectories.filter(obj => {
             return obj.nickname !== nickname.value;
         });
 
-        localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
+        localStorage.setItem("storedDirectories", JSON.stringify($storedDirectories));
 
-        if (storedDirectories.length !== 0) {
-            homeDirectory = storedDirectories[storedDirectories.length - 1].directoryPath
+        if ($storedDirectories.length !== 0) {
+            homeDirectory = $storedDirectories[$storedDirectories.length - 1].directoryPath
             handleLoadDirectory(homeDirectory);
         } else {
             homeDirectory = "";
@@ -421,8 +423,7 @@
                 let targetX = selected[1].xCord + 30;
                 let targetY = selected[1].yCord + 20;
 
-                artLink.addSource(sourceX, sourceY);
-                let [isDup, _] = artLink.hasDup(null, null, targetX, targetY, artLinkList);
+                let [isDup, _] = artLink.hasDup(sourceX, sourceY, targetX, targetY, artLinkList);
 
                 if (isDup) {
                     alert("already exists");
@@ -431,13 +432,24 @@
                 }
 
                 if (artLink.source.x != targetX || artLink.source.y != targetY) {
+                    artLink.addSource(sourceX, sourceY);
                     artLink.addTarget(targetX, targetY);
+
                     artLinkList.push(artLink);
                     artLinkList = artLinkList;
+
+                    for (let i = 0; i < $storedDirectories.length; i++) {
+                        if ($storedDirectories[i].directoryPath == homeDirectory) {
+                            $storedDirectories[i].artLinkList = artLinkList;
+
+                            localStorage.setItem("storedDirectories", JSON.stringify($storedDirectories));
+                        }
+                    }
 
                     selected = [];
                 }
 
+                artLink = new ArtLink();
                 return;
             }
 
@@ -463,12 +475,11 @@
                 artLinkList = artLinkList;
 
                 // could maybe use findIndex instead
-                for (let i = 0; i < storedDirectories.length; i++) {
-                    if (storedDirectories[i].directoryPath == homeDirectory) {
-                        storedDirectories[i].artLinkList = artLinkList;
-                        storedDirectories = storedDirectories;
+                for (let i = 0; i < $storedDirectories.length; i++) {
+                    if ($storedDirectories[i].directoryPath == homeDirectory) {
+                        $storedDirectories[i].artLinkList = artLinkList;
 
-                        localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
+                        localStorage.setItem("storedDirectories", JSON.stringify($storedDirectories));
                     }
                 }
             }
@@ -494,12 +505,11 @@
             artLinkList.splice(index, 1);
             artLinkList = artLinkList;
 
-            for (let i = 0; i < storedDirectories.length; i++) {
-                if (storedDirectories[i].directoryPath == homeDirectory) {
-                    storedDirectories[i].artLinkList = artLinkList;
-                    storedDirectories = storedDirectories;
+            for (let i = 0; i < $storedDirectories.length; i++) {
+                if ($storedDirectories[i].directoryPath == homeDirectory) {
+                    $storedDirectories[i].artLinkList = artLinkList;
 
-                    localStorage.setItem("storedDirectories", JSON.stringify(storedDirectories));
+                    localStorage.setItem("storedDirectories", JSON.stringify($storedDirectories));
                 }
             }
         }
@@ -708,10 +718,10 @@
         }
 
         paths = pathReal;
-        if ($hides.length !== 0) {
-            paths = pathReal.filter(obj => !RegExp($hides.join('|')).test(obj));
+        if (hides.length !== 0) {
+            paths = pathReal.filter(obj => !RegExp(hides.join('|')).test(obj));
         }
-        paths = paths.slice(0, $pathLimit);
+        paths = paths.slice(0, entityLimit);
     });
 
     listen('refresh-remove', (event) => {
@@ -731,12 +741,20 @@
 
     listen('refresh-add', (event) => {
         pathReal = pathReal.concat([event.payload.added]);
-        if ($hides.length !== 0) {
-            paths = pathReal.filter(obj => !RegExp($hides.join('|')).test(obj));
+        if (hides.length !== 0) {
+            paths = pathReal.filter(obj => !RegExp(hides.join('|')).test(obj));
         }
-        paths = pathReal.slice(0, $pathLimit);
+        paths = pathReal.slice(0, entityLimit);
     });
 
+    $: {
+        for (let i = 0; i < $storedDirectories.length; i++) {
+            if ($storedDirectories[i].directoryPath == homeDirectory) {
+                entityLimit = $storedDirectories[i].entityLimit;
+                hides = $storedDirectories[i].hides;
+            }
+        }
+    }
     $: root = d3.stratify().path((d) => d)(paths);
    // @ts-ignore
     $: treeLayout = d3.tree().size([width, height - 40])(root);
@@ -746,7 +764,7 @@
     <ul class="unselectable" unselectable="on">
         <li>
             <select bind:value={homeDirectory} id="homeDirectory" title="choose directory" on:change={() => handleLoadDirectory(homeDirectory)}>
-                {#each storedDirectories as storedDirectory}
+                {#each $storedDirectories as storedDirectory}
                     {#if storedDirectory.nickname == pinned}
                         <option selected value={storedDirectory.directoryPath}>{storedDirectory.nickname}</option>
                     {:else}
@@ -787,8 +805,8 @@
             </svg>
         </button>
 
-        <p class="unselectable" unselectable="on" title="{pathReal.length} / {$pathLimit}" style="position: absolute; bottom: 0; right: 0; margin: 0.5em; cursor: default;">
-            {paths.length} / {$pathLimit}
+        <p class="unselectable" unselectable="on" title="{pathReal.length} / {entityLimit}" style="position: absolute; bottom: 0; right: 0; margin: 0.5em; cursor: default;">
+            {paths.length} / {entityLimit}
         </p>
 
     </div>
@@ -813,7 +831,7 @@
             <input class="caution" type="submit" value="remove"/>
         </form>
     </dialog>
-    <Settings {storedDirectories} {bgUrl} {bgColor} {pinned}/>
+    <Settings {homeDirectory} {entityLimit} {hides} {bgUrl} {bgColor} {pinned}/>
     <CreateEnt directory={globalDir}/>
     <DeleteEnt directory={globalDir}/>
     <Rename directory={globalDir} filename={globalFilename}/>
@@ -829,9 +847,13 @@
         </defs>
         {#each artLinkList as link}
             <g stroke-width="2" stroke="#ffffff" fill="none" stroke-linecap="round" stroke-linejoin="round" data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y}>
-                {#if link.source.y == link.target.y}
+                {#if link.source.y == link.target.y && link.source.x < link.target.x}
                     <line style="cursor: pointer;" x1={link.source.x+25} y1={link.source.y} x2={link.target.x-25} y2={link.target.y} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={$lineColor} marker-end="url(#arrowTail)" marker-start="url(#arrowHead)"></line>
-                {:else}
+                {:else if link.source.y == link.target.y && link.source.x > link.target.x}
+                    <line style="cursor: pointer;" x1={link.source.x-25} y1={link.source.y} x2={link.target.x+25} y2={link.target.y} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={$lineColor} marker-end="url(#arrowTail)" marker-start="url(#arrowHead)"></line>
+                {:else if link.source.y > link.target.y}
+                    <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y-25} x2={link.target.x} y2={link.target.y+25} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={$lineColor} marker-end="url(#arrowTail)" marker-start="url(#arrowHead)"></line>
+                {:else if link.source.y < link.target.y}
                     <line style="cursor: pointer;" x1={link.source.x} y1={link.source.y+25} x2={link.target.x} y2={link.target.y-25} data-x1={link.source.x} data-y1={link.source.y} data-x2={link.target.x} data-y2={link.target.y} stroke={$lineColor} marker-end="url(#arrowTail)" marker-start="url(#arrowHead)"></line>
                 {/if}
             </g>
