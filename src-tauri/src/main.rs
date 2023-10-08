@@ -298,9 +298,17 @@ fn remove_location(location: String) -> (bool, bool) {
     }
 }
 
+#[tauri::command]
+fn expand_search(directories: Vec<String>) {
+
+    for elem in directories {
+        println!("{}", elem);
+    }
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, get_is_dir, open_location, rename_location, create_location, remove_location, copy_paste])
+        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, get_is_dir, open_location, rename_location, create_location, remove_location, copy_paste, expand_search])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

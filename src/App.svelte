@@ -39,10 +39,10 @@
     let pathTmp = []; // to be able to go back to the original paths when done with searching
     let pathReal = [];
 
-    let width = 1400;
-    let height = 775;
-    let recWidth = 60;
-    let recHeight = 40;
+    const width = 1400;
+    const height = 775;
+    const recWidth = 60;
+    const recHeight = 40;
 
     // context menu
     let showMenu = false;
@@ -218,6 +218,11 @@
                     });
 
                     if (fullName.length === 0) {
+                        // expand search
+                        let otherSearches = $storedDirectories.map(obj => obj.directoryPath);
+                        otherSearches = otherSearches.filter(obj => obj.directoryPath != homeDirectory)
+                        invoke("expand_search", {directories: otherSearches})
+
                         return;
                     }
 
