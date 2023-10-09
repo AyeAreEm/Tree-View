@@ -33,6 +33,7 @@
     // dialogs
     let addDirectoryDialog;
     let removeDirectoryDialog;
+    let expandSearchDialog;
 
     // d3 related
     let paths = ["welcome, create a directory^"]; // main path array, everything tracks back to this
@@ -199,40 +200,49 @@
    }
 
     const handleSearchBar = (e) => {
-        if (e.key === "Enter") {
-            paths = pathTmp.length !== 0 ? pathTmp : paths;
-            selected = [];
+        if (e.key !== "Enter") {
+            return;
+        }
 
-            switch (searchValue) {
-                case "":
-                    for (let i = 0; i < $storedDirectories.length; i++) {
-                        if ($storedDirectories[i].directoryPath == homeDirectory) {
-                            artLinkList = $storedDirectories[i].artLinkList;
-                        }
-                    }
-                    break;
-            
-                default:
-                    let fullName = pathReal.filter(obj => {
-                        return obj.toLowerCase().includes(searchValue.toLowerCase());
-                    });
+        paths = pathTmp.length !== 0 ? pathTmp : paths;
+        selected = [];
 
-                    if (fullName.length === 0) {
-                        // expand search
-                        let otherSearches = $storedDirectories.map(obj => obj.directoryPath);
-                        otherSearches = otherSearches.filter(obj => obj.directoryPath != homeDirectory)
-                        invoke("expand_search", {directories: otherSearches})
+        if (searchValue == "") {
+            for (let i = 0; i < $storedDirectories.length; i++) {
+                if ($storedDirectories[i].directoryPath == homeDirectory) {
+                    artLinkList = $storedDirectories[i].artLinkList;
+                }
+            }
+        } else {
+            let fullName = pathReal.filter(obj => {
+                return obj.toLowerCase().includes(searchValue.toLowerCase());
+            });
 
-                        return;
-                    }
+            if (fullName.length === 0) {
+                // expand search
+                console.log("heloo");
+                return;
+            }
 
-                    pathTmp = paths; // this updates the temperary value to the old paths
-                    paths = fullName; // this updates d3 with the found searched terms
-                    if (paths.length != pathTmp.length) artLinkList = [];
-                    showPopup(); // not sure if keeping this
-                    break;
+            pathTmp = paths; // this updates the temperary value to the old paths
+            paths = fullName; // this updates d3 with the found searched terms
+            if (paths.length != pathTmp.length) artLinkList = [];
+            showPopup(); // not sure if keeping this
+        }
+    }
+
+    const handleExpandSearch = () => {
+        let otherSearches = [];
+        for (let i = 0; i < $storedDirectories.length; i++) {
+            if ($storedDirectories[i].directoryPath != homeDirectory) {
+                otherSearches.push($storedDirectories[i].directoryPath);
             }
         }
+
+        invoke("expand_search", {directories: otherSearches, searchTerm: searchValue, userIgnores: $ignores})
+            .then(res => {
+                console.log(res);
+            });
     }
 
     const handleAddDirectory = async () => {
@@ -836,6 +846,11 @@
             <input class="caution" type="submit" value="remove"/>
         </form>
     </dialog>
+    <dialog bind:this={expandSearchDialog} class="unselectable" unselectable="on">
+        <p style="color: white;">would you like to expand your search to other directories?</p>
+        <button class="caution" on:click={_ => expandSearchDialog.close()}>no</button>
+        <button on:click={_ => handleExpandSearch}>search</button>
+    </dialog>
     <Settings {homeDirectory} {entityLimit} {hides} {bgUrl} {bgColor} {pinned}/>
     <CreateEnt directory={globalDir}/>
     <DeleteEnt directory={globalDir}/>
@@ -934,7 +949,7 @@
     {/if}
 </main>
 
-<svelte:window on:contextmenu={handleContextMenu} on:click={_ => showMenu = false} />
+<svelte:window on:contextmenu|preventDefault={handleContextMenu} on:click={_ => showMenu = false} />
 
 <style>
     .navbar {

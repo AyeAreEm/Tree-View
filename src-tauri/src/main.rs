@@ -6,6 +6,9 @@ extern crate fs_extra;
 use std::env;
 use std::process::Command;
 use std::fs;
+use std::thread;
+use std::sync::mpsc;
+
 use fs_extra::copy_items;
 use fs_extra::dir;
 use tauri::Size;
@@ -299,11 +302,23 @@ fn remove_location(location: String) -> (bool, bool) {
 }
 
 #[tauri::command]
-fn expand_search(directories: Vec<String>) {
+fn expand_search(directories: Vec<String>, search_term: String, user_ignores: Vec<String>) -> Vec<String> {
+    let (tx, rx) = mpsc::channel();
 
-    for elem in directories {
-        println!("{}", elem);
-    }
+    thread::spawn(move || {
+        let mut found: Vec<String> = Vec::new();
+        let loaded = load_directory(directories[0].as_str(), user_ignores);
+
+        for elem in loaded {
+            if elem.contains(search_term.as_str()) {
+                found.push(elem);
+            }
+        }
+        tx.send(found).unwrap();
+    });
+
+    let finished_found = rx.recv().unwrap();
+    return finished_found;
 }
 
 fn main() {

@@ -146,11 +146,9 @@
         <label for="hides">hide folders/ files:</label>
         <input type="text" name="hides" spellcheck="false" bind:value={setHides} on:keydown={e => addingINH(e, setHides, hides, false)}/><br>
         <select bind:value={selectedHide}>
-            {#if hides.length !== 0}
-                {#each hides as hide}
-                    <option value={hide}>{hide}</option>
-                {/each}
-            {/if}
+            {#each hides as hide}
+                <option value={hide}>{hide}</option>
+            {/each}
         </select>
         <button class="caution" on:click={removeHide}>
             <svg width="15px" height="15px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
