@@ -35,6 +35,7 @@ customisation example:
 - ✅ Keyboard shortcuts (navigate between master directories, focus on searchbar, open settings, etc.)
 - ✅ Selectable items (that blue glow around selected files to indicate which is in focus and such | could lead to loads of keyboard shortcuts)
 - ✅ Make certain settings directory dependent
+- 👷 Expand search (if item couldn't be found, option to search other master directories)
 - 👷 Link Lines: position them better
 
 ### v1.1 Features
@@ -43,7 +44,6 @@ customisation example:
 - Directory watcher? (v1.1)
 
 ## Todos
-- Expand search? (if item couldn't be found, option to search other master directories)
 - Tags for quicker searches?
 
 ---
@@ -178,3 +178,4 @@ copy_items(&contents, to, &options)
 | --- | --- | --- |
 | resize window sometimes doesn't resize bg image | 🤷‍♂️ | 🕸 |
 | context menu position isn't right | 🕸 | 🕸 |
+| search 'x' bugs the context menu for some reason | fixed | fixed |

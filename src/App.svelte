@@ -199,6 +199,19 @@
         return path.substring(index + 1);
    }
 
+    const handleSearchFind = () => {
+        let found = [];
+
+        for (let i = 0; i < pathReal.length; i++) {
+            let searchTerm = searchValue.toLowerCase().trim();
+            if (pathReal[i].toLowerCase().includes(searchTerm)) {
+                found.push(pathReal[i]);
+            }
+        }
+
+        return found;
+    }
+
     const handleSearchBar = (e) => {
         if (e.key !== "Enter") {
             return;
@@ -214,20 +227,27 @@
                 }
             }
         } else {
-            let fullName = pathReal.filter(obj => {
-                return obj.toLowerCase().includes(searchValue.toLowerCase());
-            });
+            let fullName = handleSearchFind();
 
             if (fullName.length === 0) {
                 // expand search
-                console.log("heloo");
+                setTimeout(() => {
+                    expandSearchDialog.showModal();
+                }, 1);
                 return;
             }
 
-            pathTmp = paths; // this updates the temperary value to the old paths
-            paths = fullName; // this updates d3 with the found searched terms
-            if (paths.length != pathTmp.length) artLinkList = [];
-            showPopup(); // not sure if keeping this
+            invoke('handle_search_data', {data: fullName})
+                .then(res => {
+                    console.log(res);
+
+                    pathTmp = paths; // this updates the temperary value to the old paths
+                    paths = res; // this updates d3 with the found searched terms
+                    if (paths.length != pathTmp.length) {
+                        artLinkList = [];
+                    }
+                    showPopup(); // not sure if keeping this
+                });
         }
     }
 
@@ -239,9 +259,11 @@
             }
         }
 
+        expandSearchDialog.close();
         invoke("expand_search", {directories: otherSearches, searchTerm: searchValue, userIgnores: $ignores})
             .then(res => {
-                console.log(res);
+                pathTmp = paths;
+                paths = res;
             });
     }
 
@@ -847,9 +869,9 @@
         </form>
     </dialog>
     <dialog bind:this={expandSearchDialog} class="unselectable" unselectable="on">
-        <p style="color: white;">would you like to expand your search to other directories?</p>
-        <button class="caution" on:click={_ => expandSearchDialog.close()}>no</button>
-        <button on:click={_ => handleExpandSearch}>search</button>
+        <p style="color: white;">couldn't find. expand search?</p>
+        <button class="caution" on:click={_ => expandSearchDialog.close()}>cancel</button>
+        <button on:click={_ => handleExpandSearch()}>search</button>
     </dialog>
     <Settings {homeDirectory} {entityLimit} {hides} {bgUrl} {bgColor} {pinned}/>
     <CreateEnt directory={globalDir}/>
@@ -949,7 +971,7 @@
     {/if}
 </main>
 
-<svelte:window on:contextmenu|preventDefault={handleContextMenu} on:click={_ => showMenu = false} />
+<svelte:window on:contextmenu={handleContextMenu} on:click={_ => showMenu = false} />
 
 <style>
     .navbar {

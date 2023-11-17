@@ -4,11 +4,11 @@
 extern crate fs_extra;
 
 use std::env;
+use std::path::{ Path, PathBuf };
 use std::process::Command;
 use std::fs;
 use std::thread;
 use std::sync::mpsc;
-
 use fs_extra::copy_items;
 use fs_extra::dir;
 use tauri::Size;
@@ -16,7 +16,7 @@ use tauri::Window;
 use walkdir::WalkDir;
 use open;
 use rand::Rng;
-use serde::{Deserialize, Serialize };
+use serde::{ Deserialize, Serialize };
 
 #[derive(Deserialize, Serialize)]
 struct Properties {
@@ -302,6 +302,34 @@ fn remove_location(location: String) -> (bool, bool) {
 }
 
 #[tauri::command]
+fn handle_search_data(data: Vec<String>) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    let mut folders = Vec::new();
+
+    for elem in data {
+        let path = Path::new(&elem).to_path_buf();
+
+        if path.is_file() {
+            let parent = path.parent().unwrap().to_path_buf();
+
+            if !folders.contains(&parent) {
+                folders.insert(0, parent);
+            }
+        }
+
+        paths.push(path);
+    }
+
+    for elem in folders {
+        if !paths.contains(&elem) {
+            paths.insert(0, elem);
+        }
+    }
+
+    return paths;
+}
+
+#[tauri::command]
 fn expand_search(directories: Vec<String>, search_term: String, user_ignores: Vec<String>) -> Vec<String> {
     let (tx, rx) = mpsc::channel();
 
@@ -323,7 +351,7 @@ fn expand_search(directories: Vec<String>, search_term: String, user_ignores: Ve
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, get_is_dir, open_location, rename_location, create_location, remove_location, copy_paste, expand_search])
+        .invoke_handler(tauri::generate_handler![load_directory, make_properties_window, get_properties_command, get_is_dir, open_location, rename_location, create_location, remove_location, copy_paste, handle_search_data, expand_search])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
