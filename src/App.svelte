@@ -239,8 +239,6 @@
 
             invoke('handle_search_data', {data: fullName})
                 .then(res => {
-                    console.log(res);
-
                     pathTmp = paths; // this updates the temperary value to the old paths
                     paths = res; // this updates d3 with the found searched terms
                     if (paths.length != pathTmp.length) {
@@ -869,7 +867,7 @@
         </form>
     </dialog>
     <dialog bind:this={expandSearchDialog} class="unselectable" unselectable="on">
-        <p style="color: white;">couldn't find. expand search?</p>
+        <p style="color: white;">couldn't find what you search. expand search?</p>
         <button class="caution" on:click={_ => expandSearchDialog.close()}>cancel</button>
         <button on:click={_ => handleExpandSearch()}>search</button>
     </dialog>
@@ -971,7 +969,7 @@
     {/if}
 </main>
 
-<svelte:window on:contextmenu={handleContextMenu} on:click={_ => showMenu = false} />
+<svelte:window on:contextmenu|preventDefault={handleContextMenu} on:click={_ => showMenu = false} />
 
 <style>
     .navbar {
