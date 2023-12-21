@@ -130,7 +130,7 @@ let content: Vec<_> = WalkDir::new(directory)
                     .map(|f| f.path().to_owned())
                     .collect();
 ```
-That's it. Done. Amazing. Using this, I had to convert the path buffer to a string which was weirdly hard but I got there in the end. I needed it to be a regular string and not a `.display()` or `.into_os_string().into_string()` mainly because I didn't want to deal with the hassle and because I needed to spend strings to the frontend.
+That's it. Done. Amazing. Using this, I had to convert the path buffer to a string which was weirdly hard but I got there in the end. I needed it to be a regular string and not a `.display()` or `.into_os_string().into_string()` mainly because I didn't want to deal with the hassle and because I needed to send strings to the frontend.
 
 ### Use of D3
 I wanna throw a washing machine at the nearest wall.

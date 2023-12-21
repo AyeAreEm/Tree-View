@@ -790,6 +790,7 @@
             }
         }
     }
+
     $: root = d3.stratify().path((d) => d)(paths);
    // @ts-ignore
     $: treeLayout = d3.tree().size([width, height - 40])(root);

@@ -62,9 +62,7 @@
     }
 
     const removeHide = () => {
-        hides.update(value => {
-            return value.filter(obj => obj !== selectedHide);
-        })
+        hides = hides.filter(obj => obj !== selectedHide);
     }
     
     const saveSettings = () => {
@@ -80,13 +78,13 @@
         for (let i = 0; i < $storedDirectories.length; i++) {
             if ($storedDirectories[i].directoryPath == homeDirectory) {
                 $storedDirectories[i].entityLimit = selectedLimit;
+                $storedDirectories[i].hides = hides;
 
                 localStorage.setItem("storedDirectories", JSON.stringify($storedDirectories));
             }
         }
 
         localStorage.setItem("ignores", JSON.stringify($ignores));
-        localStorage.setItem("hides", JSON.stringify(hides));
 
         emit("refresh");
         settingsDialog.close();
