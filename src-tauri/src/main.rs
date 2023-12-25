@@ -67,7 +67,7 @@ fn get_properties(directory: &str, filename: &str) -> Properties {
 
 #[tauri::command]
 fn load_directory(directory: &str, user_ignores: Vec<String>) -> Vec<String> {
-    let metadata_result = fs::metadata(directory.clone());
+    let metadata_result = fs::metadata(directory);
     match metadata_result {
         Ok(metadata) => metadata,
         Err(_) => return vec!["cannot find directory".to_string()],
@@ -139,11 +139,11 @@ fn open_on_windows(location_unsan: &String, application: &str) {
     let binding = location_unsan.replace("/", "\\");
     let location = binding.as_str();
 
-    let index = if fs::metadata(location.clone()).unwrap().is_file() {location.rfind("\\").unwrap()} else {location.len()};
+    let index = if fs::metadata(location).unwrap().is_file() {location.rfind("\\").unwrap()} else {location.len()};
 
     match application {
         "" => {
-            match open::that(location.clone()) {
+            match open::that(location) {
                 Ok(_) => (),
                 Err(_) => {
                     open::that(location[0..index].to_string()).unwrap();
@@ -168,11 +168,11 @@ fn open_on_windows(location_unsan: &String, application: &str) {
 }
 
 fn open_on_mac(location: &str, application: &str) {
-    let index = if fs::metadata(location.clone()).unwrap().is_file() {location.rfind("/").unwrap()} else {location.len()};
+    let index = if fs::metadata(location).unwrap().is_file() {location.rfind("/").unwrap()} else {location.len()};
 
     match application {
         "" => {
-            match open::that(location.clone()) {
+            match open::that(location) {
                 Ok(_) => (),
                 Err(_) => {
                     open::that(location[0..index].to_string()).unwrap();
