@@ -335,13 +335,18 @@ fn expand_search(directories: Vec<String>, search_term: String, user_ignores: Ve
 
     thread::spawn(move || {
         let mut found: Vec<String> = Vec::new();
-        let loaded = load_directory(directories[0].as_str(), user_ignores);
+        let mut loaded: Vec<String> = Vec::new();
+
+        for directory in directories {
+            loaded.append(&mut load_directory(directory.as_str(), user_ignores.clone()));
+        }
 
         for elem in loaded {
             if elem.contains(search_term.as_str()) {
                 found.push(elem);
             }
         }
+
         tx.send(found).unwrap();
     });
 
